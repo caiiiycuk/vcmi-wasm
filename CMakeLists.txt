@@ -60,9 +60,22 @@ option(ENABLE_CCACHE "Speed up recompilation by caching previous compilations" O
 # Platform-specific options
 
 if(EMSCRIPTEN)
-	set(ENABLE_HTML5_BUILD ON)
+	if(NOT CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+		message(FATAL_ERROR
+			"Only MinSizeRel is supported for emscripten"
+			"Use -DCMAKE_BUILD_TYPE=MinSizeRel when generate build configuration"
+		)
+	endif()
+	if(NOT UNIX)
+		message(FATAL_ERROR "Only UNIX build is supported for emscripten")
+	endif()
 
 	include(ExternalProject)
+	include(ProcessorCount)
+	ProcessorCount(N)
+
+	set(ENABLE_HTML5_BUILD ON)
+
 	ExternalProject_Add(boost
 			PREFIX "boost"
 			URL "https://github.com/boostorg/boost/releases/download/boost-1.86.0/boost-1.86.0-cmake.zip"
@@ -84,7 +97,7 @@ if(EMSCRIPTEN)
 				toolset=emscripten
 				link=static
 				variant=release
-				-j32
+				"-j${N}"
 			INSTALL_COMMAND ""
 			INSTALL_DIR ${CMAKE_BINARY_DIR}/boost
 	)
@@ -95,11 +108,16 @@ if(EMSCRIPTEN)
 	add_compile_options(
 		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1" "-pthread"
 		"-fwasm-exceptions"
+		"-Oz"
 	)
 	add_link_options(
 		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1" "-pthread"
 		"-fwasm-exceptions"
 		"--preload-file" "${CMAKE_CURRENT_LIST_DIR}/res_gen@/"
+		"-sTOTAL_MEMORY=134217728"
+        "-sALLOW_MEMORY_GROWTH=0"
+		"-Oz"
+		"--profiling-funcs"
 	)
 	include_directories(
 		"${CMAKE_BINARY_DIR}/boost/include"
@@ -165,7 +183,9 @@ if (ENABLE_HTML5_BUILD)
 	set(ENABLE_STRICT_COMPILATION OFF)
 	set(ENABLE_CCACHE OFF)
 	set(ENABLE_MONOLITHIC_INSTALL ON)
-	add_definitions(-DVCMI_NO_THREADS)
+	add_definitions(
+		-DVCMI_NO_THREADED_LOAD
+	)
 endif()
 
 # ERM depends on LUA implicitly

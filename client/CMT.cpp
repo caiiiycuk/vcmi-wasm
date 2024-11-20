@@ -44,6 +44,10 @@
 #include <SDL_main.h>
 #include <SDL.h>
 
+#ifdef VCMI_EMSCRIPTEN
+#include <emscripten.h>
+#endif
+
 #ifdef VCMI_ANDROID
 #include "../lib/CAndroidVMHelper.h"
 #include <SDL_system.h>
@@ -385,7 +389,11 @@ int main(int argc, char * argv[])
 
 	if(!settings["session"]["headless"].Bool())
 	{
+#ifndef VCMI_EMSCRIPTEN
 		mainLoop();
+#else
+		emscripten_set_main_loop(mainLoop, 0, true);
+#endif
 	}
 	else
 	{
@@ -426,7 +434,9 @@ static void mainLoop()
 	setThreadName("MainGUI");
 #endif
 
+#ifndef VCMI_EMSCRIPTEN
 	while(1) //main SDL events loop
+#endif
 	{
 		GH.input().fetchEvents();
 		GH.renderFrame();
