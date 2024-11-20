@@ -222,7 +222,7 @@ INetworkHandler & CServerHandler::getNetworkHandler()
 void CServerHandler::startLocalServerAndConnect(bool connectToLobby)
 {
 	logNetwork->trace("\tLocal server startup has been requested");
-#ifdef VCMI_MOBILE
+#if defined(VCMI_MOBILE) || defined(VCMI_EMSCRIPTEN)
 	// mobile apps can't spawn separate processes - only thread mode is available
 	serverRunner.reset(new ServerThreadRunner());
 #else

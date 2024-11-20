@@ -15,7 +15,7 @@
 #include "../lib/CThreadHelper.h"
 #include "../server/CVCMIServer.h"
 
-#ifndef VCMI_MOBILE
+#if defined(VCMI_MOBILE) || defined(VCMI_EMSCRIPTEN) || 1
 #include <boost/process/child.hpp>
 #include <boost/process/io.hpp>
 #endif
@@ -53,7 +53,7 @@ int ServerThreadRunner::exitCode()
 	return 0;
 }
 
-#ifndef VCMI_MOBILE
+#if !defined(VCMI_MOBILE) && !defined(VCMI_EMSCRIPTEN)
 
 ServerProcessRunner::ServerProcessRunner() = default;
 ServerProcessRunner::~ServerProcessRunner() = default;

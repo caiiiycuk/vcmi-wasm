@@ -15,7 +15,8 @@
 #elif defined(VCMI_HAIKU)
 	#include <OS.h>
 #elif !defined(VCMI_APPLE) && !defined(VCMI_FREEBSD) && \
-	!defined(VCMI_HURD) && !defined(VCMI_OPENBSD)
+	!defined(VCMI_HURD) && !defined(VCMI_OPENBSD) && \
+	!defined(VCMI_EMSCRIPTEN)
 	#include <sys/prctl.h>
 #endif
 
@@ -111,6 +112,8 @@ void setThreadName(const std::string &name)
 	pthread_setname_np(pthread_self(), name.c_str());
 #elif defined(VCMI_HAIKU)
 	rename_thread(find_thread(NULL), name.c_str());
+#elif defined(VCMI_EMSCRIPTEN)
+	// ignore
 #elif defined(VCMI_UNIX)
 	prctl(PR_SET_NAME, name.c_str(), 0, 0, 0);
 #else

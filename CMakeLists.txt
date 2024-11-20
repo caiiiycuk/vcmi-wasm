@@ -46,6 +46,7 @@ option(ENABLE_TRANSLATIONS "Enable generation of translations for launcher and e
 option(ENABLE_NULLKILLER_AI "Enable compilation of Nullkiller AI library" ON)
 option(ENABLE_MINIMAL_LIB "Build only core parts of vcmi library that are required for game lobby" OFF)
 option(ENABLE_GOLDMASTER "Build in public release mode in which some debug routines are disabled" OFF)
+set(ENABLE_BATTLE_AI ON)
 
 # Compilation options
 
@@ -57,6 +58,56 @@ option(ENABLE_COLORIZED_COMPILER_OUTPUT "Colorize compilation output (Clang/GNU)
 option(ENABLE_CCACHE "Speed up recompilation by caching previous compilations" OFF)
 
 # Platform-specific options
+
+if(EMSCRIPTEN)
+	set(ENABLE_HTML5_BUILD ON)
+
+	include(ExternalProject)
+	ExternalProject_Add(boost
+			PREFIX "boost"
+			URL "https://github.com/boostorg/boost/releases/download/boost-1.86.0/boost-1.86.0-cmake.zip"
+			# GIT_REPOSITORY "git@github.com:emscripten-ports/boost.git"
+			# GIT_TAG "boost-1.83.0"
+			# GIT_SHALLOW true
+			BUILD_IN_SOURCE true
+			PATCH_COMMAND find . -name *.sh -execdir chmod u+x {} +
+			CONFIGURE_COMMAND ./bootstrap.sh
+			BUILD_COMMAND ./b2 install
+				--with-date_time
+				--with-filesystem
+				--with-locale
+				--with-program_options
+				--with-system
+				--with-thread
+				--with-chrono
+				--prefix=${CMAKE_BINARY_DIR}/boost
+				toolset=emscripten
+				link=static
+				variant=release
+				-j32
+			INSTALL_COMMAND ""
+			INSTALL_DIR ${CMAKE_BINARY_DIR}/boost
+	)
+	set(emclient_LIBS boost_thread boost_system boost_program_options boost_locale boost_filesystem boost_date_time boost_atomic boost_chrono)
+
+	link_directories("${CMAKE_BINARY_DIR}/boost/lib")
+
+	add_compile_options(
+		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1" "-pthread"
+		"-fwasm-exceptions"
+	)
+	add_link_options(
+		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1" "-pthread"
+		"-fwasm-exceptions"
+		"--preload-file" "${CMAKE_CURRENT_LIST_DIR}/res_gen@/"
+	)
+	include_directories(
+		"${CMAKE_BINARY_DIR}/boost/include"
+		"${CMAKE_CURRENT_LIST_DIR}/include"
+		"${CMAKE_CURRENT_LIST_DIR}/lib"
+		"${CMAKE_CURRENT_LIST_DIR}"
+	)
+endif()
 
 if(ANDROID)
 	set(ANDROID_TARGET_SDK_VERSION "34" CACHE STRING "Android target SDK version")
@@ -94,6 +145,7 @@ else()
 endif()
 
 if (ENABLE_HTML5_BUILD)
+	set(ENABLE_STATIC_LIBS ON)
 	set(ENABLE_MONOLITHIC_INSTALL ON)
 	set(ENABLE_SINGLE_APP_BUILD OFF)
 	set(ENABLE_EDITOR OFF)
@@ -105,13 +157,15 @@ if (ENABLE_HTML5_BUILD)
 	set(ENABLE_ERM OFF)
 	set(ENABLE_LUA OFF)
 	set(ENABLE_TRANSLATIONS OFF)
-	set(ENABLE_NULLKILLER_AI ON)
+	set(ENABLE_NULLKILLER_AI OFF)
+	set(ENABLE_BATTLE_AI OFF)
 	set(ENABLE_MINIMAL_LIB OFF)
 	set(ENABLE_GOLDMASTER OFF)
 	set(ENABLE_PCH OFF)
 	set(ENABLE_STRICT_COMPILATION OFF)
 	set(ENABLE_CCACHE OFF)
 	set(ENABLE_MONOLITHIC_INSTALL ON)
+	add_definitions(-DVCMI_NO_THREADS)
 endif()
 
 # ERM depends on LUA implicitly
@@ -488,7 +542,9 @@ set(BOOST_COMPONENTS date_time filesystem locale program_options system thread)
 if(ENABLE_INNOEXTRACT)
 	list(APPEND BOOST_COMPONENTS iostreams)
 endif()
-find_package(Boost 1.48.0 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+if(NOT EMSCRIPTEN)
+	find_package(Boost 1.48.0 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+endif()
 
 find_package(ZLIB REQUIRED)
 # Conan compatibility
@@ -511,18 +567,20 @@ if (ENABLE_CLIENT)
 	endif()
 	find_package(ffmpeg COMPONENTS ${FFMPEG_COMPONENTS})
 
-	find_package(SDL2 REQUIRED)
-	find_package(SDL2_image REQUIRED)
-	if(TARGET SDL2_image::SDL2_image)
-		add_library(SDL2::Image ALIAS SDL2_image::SDL2_image)
-	endif()
-	find_package(SDL2_mixer REQUIRED)
-	if(TARGET SDL2_mixer::SDL2_mixer)
-		add_library(SDL2::Mixer ALIAS SDL2_mixer::SDL2_mixer)
-	endif()
-	find_package(SDL2_ttf REQUIRED)
-	if(TARGET SDL2_ttf::SDL2_ttf)
-		add_library(SDL2::TTF ALIAS SDL2_ttf::SDL2_ttf)
+	if(NOT EMSCRIPTEN)
+		find_package(SDL2 REQUIRED)
+		find_package(SDL2_image REQUIRED)
+		if(TARGET SDL2_image::SDL2_image)
+			add_library(SDL2::Image ALIAS SDL2_image::SDL2_image)
+		endif()
+		find_package(SDL2_mixer REQUIRED)
+		if(TARGET SDL2_mixer::SDL2_mixer)
+			add_library(SDL2::Mixer ALIAS SDL2_mixer::SDL2_mixer)
+		endif()
+		find_package(SDL2_ttf REQUIRED)
+		if(TARGET SDL2_ttf::SDL2_ttf)
+			add_library(SDL2::TTF ALIAS SDL2_ttf::SDL2_ttf)
+		endif()
 	endif()
 endif()
 
@@ -541,7 +599,7 @@ if(ENABLE_LAUNCHER OR ENABLE_EDITOR)
 	endif()
 endif()
 
-if(ENABLE_CLIENT)
+if(ENABLE_CLIENT AND NOT EMSCRIPTEN)
 	find_package(TBB REQUIRED)
 endif()
 

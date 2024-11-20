@@ -704,19 +704,23 @@ else()
 endif()
 
 set_target_properties(vcmi PROPERTIES COMPILE_DEFINITIONS "VCMI_DLL=1")
-target_link_libraries(vcmi PUBLIC
-	minizip::minizip ZLIB::ZLIB
-	${SYSTEM_LIBS} Boost::boost Boost::thread Boost::filesystem Boost::program_options Boost::locale Boost::date_time
-)
+if(NOT EMSCRIPTEN)
+	target_link_libraries(vcmi PUBLIC
+		minizip::minizip ZLIB::ZLIB
+		${SYSTEM_LIBS} Boost::boost Boost::thread Boost::filesystem Boost::program_options Boost::locale Boost::date_time
+	)
+endif()
 
 if(ENABLE_STATIC_LIBS AND ENABLE_CLIENT)
 	target_compile_definitions(vcmi PRIVATE STATIC_AI)
 	target_link_libraries(vcmi PRIVATE
-		BattleAI
 		EmptyAI
 		StupidAI
 		VCAI
 	)
+	if(ENABLE_BATTLE_AI)
+		target_link_libraries(vcmi PRIVATE BattleAI)
+	endif()
 	if(ENABLE_NULLKILLER_AI)
 		target_link_libraries(vcmi PRIVATE Nullkiller)
 	endif()

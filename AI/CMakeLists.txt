@@ -47,10 +47,14 @@ endif()
 #        Add subdirectories           #
 #######################################
 
-add_subdirectory(BattleAI)
+if(ENABLE_BATTLE_AI)
+	add_definitions(-DENABLE_BATTLE_AI)
+	add_subdirectory(BattleAI)
+endif()
 add_subdirectory(VCAI)
 add_subdirectory(StupidAI)
 add_subdirectory(EmptyAI)
 if(ENABLE_NULLKILLER_AI)
+	add_definitions(-DENABLE_NULLKILLER_AI)
 	add_subdirectory(Nullkiller)
 endif()

@@ -71,3 +71,6 @@ fuzzylite.pc
 
 # CLion
 .idea/
+
+# emscripten build
+emscripten

@@ -400,15 +400,20 @@ if(ANDROID)
 	)
 else()
 	add_executable(vcmiclient ${client_SRCS} ${client_HEADERS})
+	if (EMSCRIPTEN)
+		set_target_properties(vcmiclient PROPERTIES SUFFIX ".html")
+	endif()
 endif()
 
 if(NOT ENABLE_STATIC_LIBS)
 	add_dependencies(vcmiclient
-		BattleAI
 		EmptyAI
 		StupidAI
 		VCAI
 	)
+	if(ENABLE_BATTLE_AI)
+		add_dependencies(vcmiclient BattleAI)
+	endif()
 	if(ENABLE_NULLKILLER_AI)
 		add_dependencies(vcmiclient Nullkiller)
 	endif()
@@ -484,9 +489,13 @@ if(ENABLE_SINGLE_APP_BUILD AND ENABLE_LAUNCHER)
 	target_link_libraries(vcmiclient PRIVATE vcmilauncher)
 endif()
 
-target_link_libraries(vcmiclient PRIVATE
+if(NOT EMSCRIPTEN)
+	target_link_libraries(vcmiclient PRIVATE
 		vcmi SDL2::SDL2 SDL2::Image SDL2::Mixer SDL2::TTF
-)
+	)
+else()
+	target_link_libraries(vcmiclient PRIVATE ${emclient_LIBS})
+endif()
 
 if(ffmpeg_LIBRARIES)
 	target_link_libraries(vcmiclient PRIVATE
