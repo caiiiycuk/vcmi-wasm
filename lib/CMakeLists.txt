@@ -40,6 +40,10 @@ set(lib_SRCS
 	VCMIDirs.cpp
 )
 
+if(ENABLE_HTML5_BUILD)
+	list(APPEND lib_SRCS "network/html5/HTML5Network.cpp")
+endif()
+
 set(lib_MAIN_SRCS
 
 	battle/AccessibilityInfo.cpp

@@ -15,10 +15,12 @@
 
 VCMI_LIB_NAMESPACE_BEGIN
 
+#if !defined(VCMI_HTML5_NETWORK) || 0
 std::unique_ptr<INetworkHandler> INetworkHandler::createHandler()
 {
 	return std::make_unique<NetworkHandler>();
 }
+#endif
 
 NetworkHandler::NetworkHandler()
 	: io(std::make_shared<NetworkContext>())

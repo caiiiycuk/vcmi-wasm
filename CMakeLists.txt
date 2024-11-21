@@ -186,7 +186,13 @@ if (ENABLE_HTML5_BUILD)
 	add_definitions(
 		-DVCMI_NO_THREADED_LOAD
 		-DDISABLE_VIDEO
+		-DVCMI_HTML5_NETWORK
 	)
+
+	if(NOT EMSCRIPTEN)
+		add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+		add_link_options(-fsanitize=address)
+	endif()
 endif()
 
 # ERM depends on LUA implicitly
