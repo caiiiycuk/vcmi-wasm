@@ -46,7 +46,6 @@ option(ENABLE_TRANSLATIONS "Enable generation of translations for launcher and e
 option(ENABLE_NULLKILLER_AI "Enable compilation of Nullkiller AI library" ON)
 option(ENABLE_MINIMAL_LIB "Build only core parts of vcmi library that are required for game lobby" OFF)
 option(ENABLE_GOLDMASTER "Build in public release mode in which some debug routines are disabled" OFF)
-set(ENABLE_BATTLE_AI ON)
 
 # Compilation options
 
@@ -75,13 +74,9 @@ if(EMSCRIPTEN)
 	ProcessorCount(N)
 
 	set(ENABLE_HTML5_BUILD ON)
-
 	ExternalProject_Add(boost
 			PREFIX "boost"
 			URL "https://github.com/boostorg/boost/releases/download/boost-1.86.0/boost-1.86.0-cmake.zip"
-			# GIT_REPOSITORY "git@github.com:emscripten-ports/boost.git"
-			# GIT_TAG "boost-1.83.0"
-			# GIT_SHALLOW true
 			BUILD_IN_SOURCE true
 			PATCH_COMMAND find . -name *.sh -execdir chmod u+x {} +
 			CONFIGURE_COMMAND ./bootstrap.sh
@@ -101,9 +96,31 @@ if(EMSCRIPTEN)
 			INSTALL_COMMAND ""
 			INSTALL_DIR ${CMAKE_BINARY_DIR}/boost
 	)
-	set(emclient_LIBS boost_thread boost_system boost_program_options boost_locale boost_filesystem boost_date_time boost_atomic boost_chrono)
+	ExternalProject_Add(tbb-lib
+			PREFIX "tbb"
+			URL "https://github.com/oneapi-src/oneTBB/archive/refs/tags/v2022.0.0.zip"
+			BUILD_IN_SOURCE true
+			PATCH_COMMAND echo
+				"target_compile_options(tbb PRIVATE \"-fwasm-exceptions\")\\n"
+				"target_compile_options(tbbmalloc PRIVATE \"-fwasm-exceptions\")\\n"
+				"target_link_options(tbb PRIVATE \"-fwasm-exceptions\")\\n"
+				"target_link_options(tbbmalloc PRIVATE \"-fwasm-exceptions\")\\n"
+				>> CMakeLists.txt
+			CONFIGURE_COMMAND "emcmake"
+				"${CMAKE_COMMAND}"
+				"-G${CMAKE_GENERATOR}"
+				"-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/tbb"
+				"-DBUILD_SHARED_LIBS=false"
+				"-DCMAKE_BUILD_TYPE=MinSizeRel"
+				"-DCMAKE_CXX_FLAGS=-fwasm-exceptions"
+				"-DLINK_FLAGS=-fwasm-exceptions"
+			BUILD_COMMAND "${CMAKE_MAKE_PROGRAM}" "tbb" "tbbmalloc"
+			INSTALL_COMMAND "${CMAKE_MAKE_PROGRAM}" "install" "tbb" "tbbmalloc"
+	)
+	set(emclient_LIBS boost_thread boost_system boost_program_options boost_locale boost_filesystem boost_date_time boost_atomic boost_chrono tbb tbbmalloc)
 
 	link_directories("${CMAKE_BINARY_DIR}/boost/lib")
+	link_directories("${CMAKE_BINARY_DIR}/tbb/lib")
 
 	add_compile_options(
 		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1" "-pthread"
@@ -121,6 +138,7 @@ if(EMSCRIPTEN)
 	)
 	include_directories(
 		"${CMAKE_BINARY_DIR}/boost/include"
+		"${CMAKE_BINARY_DIR}/tbb/include"
 		"${CMAKE_CURRENT_LIST_DIR}/include"
 		"${CMAKE_CURRENT_LIST_DIR}/lib"
 		"${CMAKE_CURRENT_LIST_DIR}"
@@ -176,7 +194,6 @@ if (ENABLE_HTML5_BUILD)
 	set(ENABLE_LUA OFF)
 	set(ENABLE_TRANSLATIONS OFF)
 	set(ENABLE_NULLKILLER_AI OFF)
-	set(ENABLE_BATTLE_AI OFF)
 	set(ENABLE_MINIMAL_LIB OFF)
 	set(ENABLE_GOLDMASTER OFF)
 	set(ENABLE_PCH OFF)

@@ -58,7 +58,7 @@ public:
 	}
 
 	void sendPacket(const std::vector<std::byte> &message) override {
-		logNetwork->info(std::string("(server -> client) packet:") + std::to_string(message.size()));
+		// logNetwork->info(std::string("(server -> client) packet:") + std::to_string(message.size()));
 		pushLoopCommand(loop, SERVER_TO_CLIENT, message);
 	}
 
@@ -78,7 +78,7 @@ public:
 	}
 
 	void sendPacket(const std::vector<std::byte> &message) override {
-		logNetwork->info(std::string("(client -> server) packet:") + std::to_string(message.size()));
+		// logNetwork->info(std::string("(client -> server) packet:") + std::to_string(message.size()));
 		pushLoopCommand(loop, CLIENT_TO_SERVER, message);
 	}
 

@@ -21,9 +21,7 @@
 #ifdef ENABLE_NULLKILLER_AI
 # include "AI/Nullkiller/AIGateway.h"
 #endif
-#ifdef ENABLE_BATTLE_AI
 # include "AI/BattleAI/BattleAI.h"
-#endif
 # include "AI/StupidAI/StupidAI.h"
 # include "AI/EmptyAI/CEmptyAI.h"
 #else
@@ -122,12 +120,9 @@ std::shared_ptr<CGlobalAI> createAny(const boost::filesystem::path & libpath, co
 template<>
 std::shared_ptr<CBattleGameInterface> createAny(const boost::filesystem::path & libpath, const std::string & methodName)
 {
-#ifdef ENABLE_BATTLE_AI
 	if(libpath.stem() == "libBattleAI")
 		return std::make_shared<CBattleAI>();
-	else
-#endif
-	if(libpath.stem() == "libStupidAI")
+	else if(libpath.stem() == "libStupidAI")
 		return std::make_shared<CStupidAI>();
 	return std::make_shared<CEmptyAI>();
 }

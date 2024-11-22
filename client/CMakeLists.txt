@@ -407,13 +407,11 @@ endif()
 
 if(NOT ENABLE_STATIC_LIBS)
 	add_dependencies(vcmiclient
+		BattleAI
 		EmptyAI
 		StupidAI
 		VCAI
 	)
-	if(ENABLE_BATTLE_AI)
-		add_dependencies(vcmiclient BattleAI)
-	endif()
 	if(ENABLE_NULLKILLER_AI)
 		add_dependencies(vcmiclient Nullkiller)
 	endif()
