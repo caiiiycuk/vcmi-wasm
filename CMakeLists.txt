@@ -74,7 +74,7 @@ if(EMSCRIPTEN)
 	ProcessorCount(N)
 
 	set(ENABLE_HTML5_BUILD ON)
-	ExternalProject_Add(boost
+	ExternalProject_Add(boost-lib
 			PREFIX "boost"
 			URL "https://github.com/boostorg/boost/releases/download/boost-1.86.0/boost-1.86.0-cmake.zip"
 			BUILD_IN_SOURCE true
@@ -128,13 +128,19 @@ if(EMSCRIPTEN)
 		"-Oz"
 	)
 	add_link_options(
-		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1" "-pthread"
+		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1"
+		"-sTOTAL_MEMORY=256Mb"
+		"-sALLOW_MEMORY_GROWTH=0"
+		"-sFORCE_FILESYSTEM=1"
+		"-sEXPORT_NAME=VCMI"
+		"-sMODULARIZE=1"
+		"-sINVOKE_RUN=0"
+		"-sEXPORTED_RUNTIME_METHODS=['addRunDependency', 'removeRunDependency', 'FS_createPath', 'FS_createPreloadedFile', \
+	  		'FS_createDataFile', 'lengthBytesUTF8', 'stringToUTF8', 'UTF16ToString', 'callMain', 'run']"
+		"-pthread"
 		"-fwasm-exceptions"
-		"--preload-file" "${CMAKE_CURRENT_LIST_DIR}/res_gen@/"
-		"-sTOTAL_MEMORY=134217728"
-        "-sALLOW_MEMORY_GROWTH=0"
 		"-Oz"
-		"--profiling-funcs"
+		"--profiling-funcs" # for debugging
 	)
 	include_directories(
 		"${CMAKE_BINARY_DIR}/boost/include"
@@ -143,6 +149,14 @@ if(EMSCRIPTEN)
 		"${CMAKE_CURRENT_LIST_DIR}/lib"
 		"${CMAKE_CURRENT_LIST_DIR}"
 	)
+
+	add_custom_target(html5
+		COMMAND "rm" "-rf" "html5"
+		COMMAND "mkdir" "html5"
+		COMMAND python3 "${EMSCRIPTEN_ROOT_PATH}/tools/file_packager.py"
+			"html5/vcmi.data" --no-node --from-emcc --preload "${CMAKE_CURRENT_LIST_DIR}/res_gen@" --js-output="html5/vcmi.data.js"
+		COMMAND "cp" "bin/vcmiclient*" "html5/")
+	add_dependencies(html5 vcmiclient)
 endif()
 
 if(ANDROID)

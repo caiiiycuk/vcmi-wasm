@@ -357,6 +357,10 @@ SDL_Window * ScreenHandler::createWindowImpl(Point dimensions, int flags, bool c
 
 SDL_Window * ScreenHandler::createWindow()
 {
+#ifdef VCMI_EMSCRIPTEN
+	return createWindowImpl(getPreferredWindowResolution(), SDL_WINDOW_OPENGL, true);
+#endif
+
 #ifndef VCMI_MOBILE
 	Point dimensions = getPreferredWindowResolution();
 
