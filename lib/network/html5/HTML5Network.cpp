@@ -24,37 +24,41 @@ struct HTML5NetworkCommand {
 class HTML5ServerConnection;
 class HTML5ClientConnection;
 
-struct HTML5NetworkTimer {
+struct HTML5NetworkTimeout {
 	INetworkTimerListener& listener;
-	std::chrono::milliseconds duration;
-	size_t runCount;
+	std::chrono::milliseconds executeAt;
 };
 
 struct HTML5NetworkLoop {
 	boost::mutex loopMutex;
+	boost::atomic_bool alive = true;
 	std::shared_ptr<HTML5ClientConnection> client;
 	std::shared_ptr<HTML5ServerConnection> server;
 	std::list<HTML5NetworkCommand> commands;
-	std::list<HTML5NetworkTimer> timers;
+	std::list<HTML5NetworkTimeout> timeouts;
 };
 
 
 namespace {
-	HTML5NetworkLoop loop;
-}
+	std::shared_ptr<HTML5NetworkLoop> loop = nullptr;
 
-void pushLoopCommand(HTML5NetworkLoop& loop, HTML5NetworkCommandType type, const std::vector<std::byte>& message) {
-	boost::mutex::scoped_lock lock(loop.loopMutex);
-	loop.commands.push_back({
-		type, message
-	});
+	std::chrono::milliseconds now() {
+		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+	}
+
+	void pushLoopCommand(std::shared_ptr<HTML5NetworkLoop>& loop, HTML5NetworkCommandType type, const std::vector<std::byte>& message) {
+		boost::mutex::scoped_lock lock(loop->loopMutex);
+		loop->commands.push_back({
+			type, message
+		});
+	}
 }
 
 class HTML5ClientConnection final : public INetworkConnection, public std::enable_shared_from_this<HTML5ClientConnection> {
-	HTML5NetworkLoop& loop;
+	std::shared_ptr<HTML5NetworkLoop> loop;
 public:
 	INetworkClientListener& listener;
-	HTML5ClientConnection(HTML5NetworkLoop &loop, INetworkClientListener &listener) : loop(loop), listener(listener) {
+	HTML5ClientConnection(std::shared_ptr<HTML5NetworkLoop> &loop, INetworkClientListener &listener) : loop(loop), listener(listener) {
 	}
 
 	void sendPacket(const std::vector<std::byte> &message) override {
@@ -66,15 +70,15 @@ public:
 	}
 
 	void close() override {
-		loop.client.reset();
+		loop->client.reset();
 	}
 };
 
 class HTML5ServerConnection final : public INetworkConnection, public std::enable_shared_from_this<HTML5ServerConnection> {
-	HTML5NetworkLoop& loop;
+	std::shared_ptr<HTML5NetworkLoop> loop;
 public:
 	INetworkServerListener& listener;
-	HTML5ServerConnection(HTML5NetworkLoop &loop, INetworkServerListener &listener) : loop(loop), listener(listener) {
+	HTML5ServerConnection(std::shared_ptr<HTML5NetworkLoop>& loop, INetworkServerListener &listener) : loop(loop), listener(listener) {
 	}
 
 	void sendPacket(const std::vector<std::byte> &message) override {
@@ -91,72 +95,69 @@ public:
 
 
 class HTML5NetworkServer : public INetworkConnectionListener, public INetworkServer {
-	bool alive;
-	HTML5NetworkLoop& loop;
+	std::shared_ptr<HTML5NetworkLoop> loop;
 public:
-	HTML5NetworkServer(HTML5NetworkLoop& loop): alive(true), loop(loop) {
+	HTML5NetworkServer(std::shared_ptr<HTML5NetworkLoop>& loop): loop(loop) {
 	}
 	~HTML5NetworkServer() {
-		alive = false;
+		loop->alive = false;
 	}
 
 	void start(uint16_t port) override {
 		logNetwork->info("HTML5 loop server started on " + std::to_string(port));
-		boost::thread processor([this]() {
+		std::shared_ptr<HTML5NetworkLoop> loop = this->loop;
+		boost::thread processor([loop]() {
 			setThreadName("HTTP5 loop server");
 			HTML5NetworkCommand command;
-			std::chrono::milliseconds baseMs =
-				std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-			while (alive) {
+			while (loop->alive) {
 				command.type = IDLE;
+				std::vector<INetworkTimerListener*> timersToRun;
 				{
-					boost::mutex::scoped_lock lock(loop.loopMutex);
-					if (!loop.commands.empty()) {
-						command = std::move(loop.commands.front());
-						loop.commands.pop_front();
+					boost::mutex::scoped_lock lock(loop->loopMutex);
+					if (!loop->commands.empty()) {
+						command = std::move(loop->commands.front());
+						loop->commands.pop_front();
 					}
 
-					std::chrono::milliseconds nowMs =
-						std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-					std::chrono::milliseconds passedMs = nowMs - baseMs;
-					size_t maxMs = 0;
-					for (auto &timer : loop.timers) {
-						if ((timer.runCount + 1) * timer.duration.count() > passedMs.count()) {
-							timer.listener.onTimer();
-							timer.runCount++;
+					auto nowMs = now();
+					auto it = loop->timeouts.begin();
+					while (it != loop->timeouts.end()) {
+						if (it->executeAt >= nowMs) {
+							timersToRun.push_back(&it->listener);
+							it = loop->timeouts.erase(it);
+						} else {
+							++it;
 						}
-						if (timer.duration.count() > maxMs) {
-							maxMs = timer.duration.count();
-						}
-					}
-					if (maxMs > passedMs.count()) {
-						for (auto &timer : loop.timers) {
-							timer.runCount = 0;
-						}
-						baseMs = nowMs;
 					}
 				}
+				for (const auto timer : timersToRun) {
+					timer->onTimer();
+				}
+
 				switch (command.type) {
 					case IDLE:
 						break;
 					case SERVER_CONNECT:
-						loop.server->listener.onNewConnection(loop.client);
+						loop->server->listener.onNewConnection(loop->client);
 					break;
 					case CLIENT_CONNECT:
-						loop.client->listener.onConnectionEstablished(loop.server);
+						loop->client->listener.onConnectionEstablished(loop->server);
 						break;
 					case SERVER_TO_CLIENT:
-						if (loop.client) {
-							loop.client->listener.onPacketReceived(loop.client->shared_from_this(), command.message);
+						if (loop->client) {
+							loop->client->listener.onPacketReceived(loop->client->shared_from_this(), command.message);
 						}
 						break;
 					case CLIENT_TO_SERVER:
-						if (loop.server) {
-							loop.server->listener.onPacketReceived(loop.client->shared_from_this(), command.message);
+						if (loop->server) {
+							loop->server->listener.onPacketReceived(loop->client->shared_from_this(), command.message);
 						}
 						break;
 				}
 			}
+
+			loop->server.reset();
+			loop->client.reset();
 		});
 	}
 
@@ -177,21 +178,30 @@ public:
 	HTML5NetworkHandler() = default;
 
 	std::unique_ptr<INetworkServer> createServerTCP(INetworkServerListener & listener) override {
-		logNetwork->info("ServerListener set");
-		loop.server = std::make_shared<HTML5ServerConnection>(loop, listener);
+		logNetwork->info("Create a new server loop");
+		loop = std::make_shared<HTML5NetworkLoop>();
+		loop->server = std::make_shared<HTML5ServerConnection>(loop, listener);
 		return std::make_unique<HTML5NetworkServer>(loop);
 	}
 
 	void connectToRemote(INetworkClientListener & listener, const std::string & host, uint16_t port) override {
-		logNetwork->info("ClientListener set");
-		loop.client = std::make_shared<HTML5ClientConnection>(loop, listener);
-		pushLoopCommand(loop, SERVER_CONNECT, {});
-		pushLoopCommand(loop, CLIENT_CONNECT, {});
+		if (loop && loop->alive) {
+			logNetwork->info("Client attached to the loop");
+			loop->client = std::make_shared<HTML5ClientConnection>(loop, listener);
+			pushLoopCommand(loop, SERVER_CONNECT, {});
+			pushLoopCommand(loop, CLIENT_CONNECT, {});
+		} else {
+			assert(false);
+		}
 	}
 
 	void createTimer(INetworkTimerListener & listener, std::chrono::milliseconds duration) override {
-		boost::mutex::scoped_lock lock(loop.loopMutex);
-		loop.timers.push_back({ listener, duration, 0 });
+		if (loop && loop->alive) {
+			boost::mutex::scoped_lock lock(loop->loopMutex);
+			loop->timeouts.push_back({ listener, now() + duration });
+		} else {
+			assert(false);
+		}
 	}
 
 	void run() override {
