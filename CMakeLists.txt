@@ -122,10 +122,11 @@ if(EMSCRIPTEN)
 	link_directories("${CMAKE_BINARY_DIR}/boost/lib")
 	link_directories("${CMAKE_BINARY_DIR}/tbb/lib")
 
+	set("RELEASE_OPT" "-O1")
 	add_compile_options(
 		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1" "-pthread"
 		"-fwasm-exceptions"
-		"-Oz"
+		"${RELEASE_OPT}"
 	)
 	add_link_options(
 		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1"
@@ -139,7 +140,7 @@ if(EMSCRIPTEN)
 	  		'FS_createDataFile', 'lengthBytesUTF8', 'stringToUTF8', 'UTF16ToString', 'callMain', 'run']"
 		"-pthread"
 		"-fwasm-exceptions"
-		"-Oz"
+		"${RELEASE_OPT}"
 		"--profiling-funcs" # for debugging
 	)
 	include_directories(
