@@ -136,8 +136,8 @@ if(EMSCRIPTEN)
 		"-sEXPORT_NAME=VCMI"
 		"-sMODULARIZE=1"
 		"-sINVOKE_RUN=0"
-		"-sEXPORTED_RUNTIME_METHODS=['addRunDependency', 'removeRunDependency', 'FS_createPath', 'FS_createPreloadedFile', \
-	  		'FS_createDataFile', 'lengthBytesUTF8', 'stringToUTF8', 'UTF16ToString', 'callMain', 'run']"
+		"-sEXPORTED_RUNTIME_METHODS=['addRunDependency', 'removeRunDependency', 'FS', \
+			'lengthBytesUTF8', 'stringToUTF8', 'UTF8ToString', 'callMain', 'run']"
 		"-pthread"
 		"-fwasm-exceptions"
 		"${RELEASE_OPT}"
@@ -155,7 +155,12 @@ if(EMSCRIPTEN)
 		COMMAND "rm" "-rf" "html5"
 		COMMAND "mkdir" "html5"
 		COMMAND python3 "${EMSCRIPTEN_ROOT_PATH}/tools/file_packager.py"
-			"html5/vcmi.data" --no-node --from-emcc --preload "${CMAKE_CURRENT_LIST_DIR}/res_gen@" --js-output="html5/vcmi.data.js"
+			"html5/vcmi.data" --no-node --from-emcc
+			--preload "${CMAKE_CURRENT_LIST_DIR}/config@config"
+			--preload "${CMAKE_CURRENT_LIST_DIR}/Mods@Mods"
+			--preload "${CMAKE_CURRENT_LIST_DIR}/data/Maps@Maps"
+			--preload "${CMAKE_CURRENT_LIST_DIR}/data/Mp3@Mp3"
+			--js-output="html5/vcmi.data.js"
 		COMMAND "cp" "bin/vcmiclient*" "html5/")
 	add_dependencies(html5 vcmiclient)
 endif()

@@ -42,6 +42,9 @@ set(lib_SRCS
 
 if(ENABLE_HTML5_BUILD)
 	list(APPEND lib_SRCS "network/html5/HTML5Network.cpp")
+	if (EMSCRIPTEN)
+		list(APPEND lib_SRCS "html5/html5.cpp")
+	endif()
 endif()
 
 set(lib_MAIN_SRCS
