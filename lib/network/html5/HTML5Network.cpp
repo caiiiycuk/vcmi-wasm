@@ -70,6 +70,7 @@ public:
 	}
 
 	void close() override {
+		loop->alive = false;
 		loop->client.reset();
 	}
 };
@@ -90,6 +91,8 @@ public:
 	}
 
 	void close() override {
+		loop->alive = false;
+		loop->server.reset();
 	}
 };
 
@@ -144,12 +147,12 @@ public:
 						loop->client->listener.onConnectionEstablished(loop->server);
 						break;
 					case SERVER_TO_CLIENT:
-						if (loop->client) {
+						if (loop->alive && loop->client) {
 							loop->client->listener.onPacketReceived(loop->client->shared_from_this(), command.message);
 						}
 						break;
 					case CLIENT_TO_SERVER:
-						if (loop->server) {
+						if (loop->alive && loop->server) {
 							loop->server->listener.onPacketReceived(loop->client->shared_from_this(), command.message);
 						}
 						break;
