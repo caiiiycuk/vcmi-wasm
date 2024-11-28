@@ -139,6 +139,7 @@ public:
 
 				switch (command.type) {
 					case IDLE:
+						usleep(4000);
 						break;
 					case SERVER_CONNECT:
 						loop->server->listener.onNewConnection(loop->client);
@@ -147,12 +148,12 @@ public:
 						loop->client->listener.onConnectionEstablished(loop->server);
 						break;
 					case SERVER_TO_CLIENT:
-						if (loop->alive && loop->client) {
-							loop->client->listener.onPacketReceived(loop->client->shared_from_this(), command.message);
+						if (loop->alive && loop->client && loop->server) {
+							loop->client->listener.onPacketReceived(loop->server->shared_from_this(), command.message);
 						}
 						break;
 					case CLIENT_TO_SERVER:
-						if (loop->alive && loop->server) {
+						if (loop->alive && loop->client && loop->server) {
 							loop->server->listener.onPacketReceived(loop->client->shared_from_this(), command.message);
 						}
 						break;
@@ -212,7 +213,11 @@ public:
 	}
 
 	void stop() override {
-
+		if (loop) {
+			loop->alive = false;
+		} else {
+			assert(false);
+		}
 	}
 };
 
