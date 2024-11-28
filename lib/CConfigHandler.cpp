@@ -96,6 +96,8 @@ void SettingsStorage::invalidateNode(const std::vector<std::string> &changedPath
 	auto fileName = CResourceHandler::get()->getResourceName(JsonPath::builtin(dataFilename));
 	std::fstream file(fileName->c_str(), std::ofstream::out | std::ofstream::trunc);
 	file << savedConf.toString();
+	file.close();
+
 #ifdef VCMI_EMSCRIPTEN
 	html5::fsUpdate(fileName->c_str());
 #endif

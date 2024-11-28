@@ -138,6 +138,7 @@ if(EMSCRIPTEN)
 		"-sINVOKE_RUN=0"
 		"-sEXPORTED_RUNTIME_METHODS=['addRunDependency', 'removeRunDependency', 'FS', \
 			'lengthBytesUTF8', 'stringToUTF8', 'UTF8ToString', 'callMain', 'run']"
+		"-sEXPORTED_FUNCTIONS=['_main', '_malloc', '_free']"
 		"-pthread"
 		"-fwasm-exceptions"
 		"${RELEASE_OPT}"
