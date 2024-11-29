@@ -15,7 +15,7 @@
 #include "VCMIDirs.h"
 #include "json/JsonUtils.h"
 
-#ifdef VCMI_EMSCRIPTEN
+#ifdef VCMI_HTML5_BUILD
 #include "html5/html5.h"
 #endif
 
@@ -98,7 +98,7 @@ void SettingsStorage::invalidateNode(const std::vector<std::string> &changedPath
 	file << savedConf.toString();
 	file.close();
 
-#ifdef VCMI_EMSCRIPTEN
+#ifdef VCMI_HTML5_BUILD
 	html5::fsUpdate(fileName->c_str());
 #endif
 }

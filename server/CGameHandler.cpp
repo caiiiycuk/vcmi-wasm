@@ -73,7 +73,7 @@
 #include <vcmi/events/GenericEvents.h>
 #include <vcmi/events/AdventureEvents.h>
 
-#ifdef VCMI_EMSCRIPTEN
+#ifdef VCMI_HTML5_BUILD
 #include "../lib/html5/html5.h"
 #endif
 
@@ -1814,7 +1814,7 @@ void CGameHandler::save(const std::string & filename)
 			save << *this;
 		}
 		logGlobal->info("Game has been successfully saved!");
-#ifdef VCMI_EMSCRIPTEN
+#ifdef VCMI_HTML5_BUILD
 		html5::fsUpdate(fileName.c_str());
 #endif
 	}
