@@ -195,6 +195,7 @@ public:
 			pushLoopCommand(loop, SERVER_CONNECT, {});
 			pushLoopCommand(loop, CLIENT_CONNECT, {});
 		} else {
+			logNetwork->error("Trying to connect to loop network that does not exitsts");
 			assert(false);
 		}
 	}
@@ -204,24 +205,21 @@ public:
 			boost::mutex::scoped_lock lock(loop->loopMutex);
 			loop->timeouts.push_back({ listener, now() + duration });
 		} else {
-			assert(false);
+			logNetwork->warn("Trying to create a new timer in dead loop");
 		}
 	}
 
 	void run() override {
-
 	}
 
 	void stop() override {
 		if (loop) {
 			loop->alive = false;
-		} else {
-			assert(false);
 		}
 	}
 };
 
-std::unique_ptr<INetworkHandler> INetworkHandler::createLoopHandler()
+std::unique_ptr<INetworkHandler> INetworkHandler::createHandler()
 {
 	return std::make_unique<LoopNetworkHandler>();
 }
