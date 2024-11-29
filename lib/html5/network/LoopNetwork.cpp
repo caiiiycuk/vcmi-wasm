@@ -2,13 +2,13 @@
 // Created by caiiiycuk on 20.11.24.
 //
 #include "StdInc.h"
-#include "../NetworkHandler.h"
+#include "../../network/NetworkHandler.h"
 
 #include "CThreadHelper.h"
 
 VCMI_LIB_NAMESPACE_BEGIN
 
-enum HTML5NetworkCommandType {
+enum LoopNetworkCommandType {
 	IDLE,
 	SERVER_CONNECT,
 	CLIENT_CONNECT,
@@ -16,37 +16,37 @@ enum HTML5NetworkCommandType {
 	CLIENT_TO_SERVER,
 };
 
-struct HTML5NetworkCommand {
-	HTML5NetworkCommandType type = IDLE;
+struct LoopNetworkCommand {
+	LoopNetworkCommandType type = IDLE;
 	std::vector<std::byte> message = {};
 };
 
-class HTML5ServerConnection;
-class HTML5ClientConnection;
+class LoopServerConnection;
+class LoopClientConnection;
 
-struct HTML5NetworkTimeout {
+struct LoopNetworkTimeout {
 	INetworkTimerListener& listener;
 	std::chrono::milliseconds executeAt;
 };
 
-struct HTML5NetworkLoop {
+struct LoopNetwork {
 	boost::mutex loopMutex;
 	boost::atomic_bool alive = true;
-	std::shared_ptr<HTML5ClientConnection> client;
-	std::shared_ptr<HTML5ServerConnection> server;
-	std::list<HTML5NetworkCommand> commands;
-	std::list<HTML5NetworkTimeout> timeouts;
+	std::shared_ptr<LoopClientConnection> client;
+	std::shared_ptr<LoopServerConnection> server;
+	std::list<LoopNetworkCommand> commands;
+	std::list<LoopNetworkTimeout> timeouts;
 };
 
 
 namespace {
-	std::shared_ptr<HTML5NetworkLoop> loop = nullptr;
+	std::shared_ptr<LoopNetwork> loop = nullptr;
 
 	std::chrono::milliseconds now() {
 		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 	}
 
-	void pushLoopCommand(std::shared_ptr<HTML5NetworkLoop>& loop, HTML5NetworkCommandType type, const std::vector<std::byte>& message) {
+	void pushLoopCommand(std::shared_ptr<LoopNetwork>& loop, LoopNetworkCommandType type, const std::vector<std::byte>& message) {
 		boost::mutex::scoped_lock lock(loop->loopMutex);
 		loop->commands.push_back({
 			type, message
@@ -54,11 +54,11 @@ namespace {
 	}
 }
 
-class HTML5ClientConnection final : public INetworkConnection, public std::enable_shared_from_this<HTML5ClientConnection> {
-	std::shared_ptr<HTML5NetworkLoop> loop;
+class LoopClientConnection final : public INetworkConnection, public std::enable_shared_from_this<LoopClientConnection> {
+	std::shared_ptr<LoopNetwork> loop;
 public:
 	INetworkClientListener& listener;
-	HTML5ClientConnection(std::shared_ptr<HTML5NetworkLoop> &loop, INetworkClientListener &listener) : loop(loop), listener(listener) {
+	LoopClientConnection(std::shared_ptr<LoopNetwork> &loop, INetworkClientListener &listener) : loop(loop), listener(listener) {
 	}
 
 	void sendPacket(const std::vector<std::byte> &message) override {
@@ -75,11 +75,11 @@ public:
 	}
 };
 
-class HTML5ServerConnection final : public INetworkConnection, public std::enable_shared_from_this<HTML5ServerConnection> {
-	std::shared_ptr<HTML5NetworkLoop> loop;
+class LoopServerConnection final : public INetworkConnection, public std::enable_shared_from_this<LoopServerConnection> {
+	std::shared_ptr<LoopNetwork> loop;
 public:
 	INetworkServerListener& listener;
-	HTML5ServerConnection(std::shared_ptr<HTML5NetworkLoop>& loop, INetworkServerListener &listener) : loop(loop), listener(listener) {
+	LoopServerConnection(std::shared_ptr<LoopNetwork>& loop, INetworkServerListener &listener) : loop(loop), listener(listener) {
 	}
 
 	void sendPacket(const std::vector<std::byte> &message) override {
@@ -97,21 +97,21 @@ public:
 };
 
 
-class HTML5NetworkServer : public INetworkConnectionListener, public INetworkServer {
-	std::shared_ptr<HTML5NetworkLoop> loop;
+class LoopNetworkServer : public INetworkConnectionListener, public INetworkServer {
+	std::shared_ptr<LoopNetwork> loop;
 public:
-	HTML5NetworkServer(std::shared_ptr<HTML5NetworkLoop>& loop): loop(loop) {
+	LoopNetworkServer(std::shared_ptr<LoopNetwork>& loop): loop(loop) {
 	}
-	~HTML5NetworkServer() {
+	~LoopNetworkServer() {
 		loop->alive = false;
 	}
 
 	void start(uint16_t port) override {
 		logNetwork->info("HTML5 loop server started on " + std::to_string(port));
-		std::shared_ptr<HTML5NetworkLoop> loop = this->loop;
+		std::shared_ptr<LoopNetwork> loop = this->loop;
 		boost::thread processor([loop]() {
 			setThreadName("HTTP5 loop server");
-			HTML5NetworkCommand command;
+			LoopNetworkCommand command;
 			while (loop->alive) {
 				command.type = IDLE;
 				std::vector<INetworkTimerListener*> timersToRun;
@@ -176,22 +176,22 @@ public:
 	}
 };
 
-class HTML5NetworkHandler : public INetworkHandler
+class LoopNetworkHandler : public INetworkHandler
 {
 public:
-	HTML5NetworkHandler() = default;
+	LoopNetworkHandler() = default;
 
 	std::unique_ptr<INetworkServer> createServerTCP(INetworkServerListener & listener) override {
 		logNetwork->info("Create a new server loop");
-		loop = std::make_shared<HTML5NetworkLoop>();
-		loop->server = std::make_shared<HTML5ServerConnection>(loop, listener);
-		return std::make_unique<HTML5NetworkServer>(loop);
+		loop = std::make_shared<LoopNetwork>();
+		loop->server = std::make_shared<LoopServerConnection>(loop, listener);
+		return std::make_unique<LoopNetworkServer>(loop);
 	}
 
 	void connectToRemote(INetworkClientListener & listener, const std::string & host, uint16_t port) override {
 		if (loop && loop->alive) {
 			logNetwork->info("Client attached to the loop");
-			loop->client = std::make_shared<HTML5ClientConnection>(loop, listener);
+			loop->client = std::make_shared<LoopClientConnection>(loop, listener);
 			pushLoopCommand(loop, SERVER_CONNECT, {});
 			pushLoopCommand(loop, CLIENT_CONNECT, {});
 		} else {
@@ -221,11 +221,9 @@ public:
 	}
 };
 
-#if 1
-std::unique_ptr<INetworkHandler> INetworkHandler::createHandler()
+std::unique_ptr<INetworkHandler> INetworkHandler::createLoopHandler()
 {
-	return std::make_unique<HTML5NetworkHandler>();
+	return std::make_unique<LoopNetworkHandler>();
 }
-#endif
 
 VCMI_LIB_NAMESPACE_END
