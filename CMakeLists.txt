@@ -117,6 +117,15 @@ if(EMSCRIPTEN)
 			BUILD_COMMAND "${CMAKE_MAKE_PROGRAM}" "tbb" "tbbmalloc"
 			INSTALL_COMMAND "${CMAKE_MAKE_PROGRAM}" "install" "tbb" "tbbmalloc"
 	)
+	ExternalProject_Add(vcmi-extras
+			PREFIX "vcmi-extras"
+			URL "https://vcmi.dos.zone/mods/vcmi-extras-1.5.zip"
+			BUILD_IN_SOURCE true
+			CONFIGURE_COMMAND ""
+			BUILD_COMMAND ""
+			INSTALL_COMMAND ""
+	)
+
 	set(emclient_LIBS boost_thread boost_system boost_program_options boost_locale boost_filesystem boost_date_time boost_atomic boost_chrono tbb tbbmalloc)
 
 	link_directories("${CMAKE_BINARY_DIR}/boost/lib")
@@ -132,6 +141,8 @@ if(EMSCRIPTEN)
 		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1"
 		"-sTOTAL_MEMORY=256Mb"
 		"-sALLOW_MEMORY_GROWTH=0"
+		"-sPTHREAD_POOL_SIZE=4"
+		"-sPTHREAD_POOL_SIZE_STRICT=0"
 		"-sFORCE_FILESYSTEM=1"
 		"-sEXPORT_NAME=VCMI"
 		"-sMODULARIZE=1"
@@ -143,10 +154,12 @@ if(EMSCRIPTEN)
 		"-fwasm-exceptions"
 		"${RELEASE_OPT}"
 		"--profiling-funcs" # for debugging
+		"-sASSERTIONS=2"
 	)
 	include_directories(
 		"${CMAKE_BINARY_DIR}/boost/include"
 		"${CMAKE_BINARY_DIR}/tbb/include"
+		"${CMAKE_CURRENT_LIST_DIR}/AI/FuzzyLite/fuzzylite"
 		"${CMAKE_CURRENT_LIST_DIR}/include"
 		"${CMAKE_CURRENT_LIST_DIR}/lib"
 		"${CMAKE_CURRENT_LIST_DIR}"
@@ -157,6 +170,7 @@ if(EMSCRIPTEN)
 		COMMAND "mkdir" "html5"
 		COMMAND python3 "${EMSCRIPTEN_ROOT_PATH}/tools/file_packager.py"
 			"html5/vcmi.data" --no-node --from-emcc
+			--preload "${CMAKE_BINARY_DIR}/vcmi-extras/src/vcmi-extras@Mods/vcmi-extras"
 			--preload "${CMAKE_CURRENT_LIST_DIR}/config@config"
 			--preload "${CMAKE_CURRENT_LIST_DIR}/Mods@Mods"
 			--preload "${CMAKE_CURRENT_LIST_DIR}/data/Maps@Maps"
@@ -214,7 +228,7 @@ if (ENABLE_HTML5_BUILD)
 	set(ENABLE_ERM OFF)
 	set(ENABLE_LUA OFF)
 	set(ENABLE_TRANSLATIONS OFF)
-	set(ENABLE_NULLKILLER_AI OFF)
+	set(ENABLE_NULLKILLER_AI ON)
 	set(ENABLE_MINIMAL_LIB OFF)
 	set(ENABLE_GOLDMASTER OFF)
 	set(ENABLE_PCH OFF)

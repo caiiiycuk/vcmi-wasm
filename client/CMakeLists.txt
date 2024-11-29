@@ -402,7 +402,6 @@ else()
 	add_executable(vcmiclient ${client_SRCS} ${client_HEADERS})
 	if (EMSCRIPTEN)
 		set_target_properties(vcmiclient PROPERTIES SUFFIX ".js")
-		add_dependencies(vcmiclient boost-lib tbb-lib)
 	endif()
 endif()
 
