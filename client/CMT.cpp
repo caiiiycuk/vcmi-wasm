@@ -392,6 +392,11 @@ int main(int argc, char * argv[])
 #ifndef VCMI_EMSCRIPTEN
 		mainLoop();
 #else
+		EM_ASM((
+			if (Module.gameStarted) {
+				Module.gameStarted();
+			}
+		));
 		emscripten_set_main_loop(mainLoop, 0, true);
 #endif
 	}
