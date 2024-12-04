@@ -131,7 +131,7 @@ if(EMSCRIPTEN)
 	link_directories("${CMAKE_BINARY_DIR}/boost/lib")
 	link_directories("${CMAKE_BINARY_DIR}/tbb/lib")
 
-	set("RELEASE_OPT" "-O1")
+	set("RELEASE_OPT" "-Oz")
 	add_compile_options(
 		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1" "-pthread"
 		"-fwasm-exceptions"
@@ -140,9 +140,9 @@ if(EMSCRIPTEN)
 	add_link_options(
 		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1"
 		"-sSDL2_IMAGE_FORMATS=['bmp']"
-		"-sTOTAL_MEMORY=256Mb"
-		"-sALLOW_MEMORY_GROWTH=0"
-		"-sPTHREAD_POOL_SIZE=4"
+		"-sTOTAL_MEMORY=384Mb"
+		"-sALLOW_MEMORY_GROWTH=1"
+		"-sPTHREAD_POOL_SIZE=6"
 		"-sPTHREAD_POOL_SIZE_STRICT=0"
 		"-sFORCE_FILESYSTEM=1"
 		"-sEXPORT_NAME=VCMI"
@@ -153,8 +153,10 @@ if(EMSCRIPTEN)
 		"-sEXPORTED_FUNCTIONS=['_main', '_malloc', '_free']"
 		"-pthread"
 		"-fwasm-exceptions"
+		"-sMALLOC=mimalloc"
 		"${RELEASE_OPT}"
-		"--profiling-funcs" # for debugging
+		# for debugging
+		"--profiling-funcs"
 		"-sASSERTIONS=2"
 	)
 	include_directories(

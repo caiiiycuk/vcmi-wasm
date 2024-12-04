@@ -418,6 +418,7 @@ void ScreenHandler::validateSettings()
 		}
 	}
 
+#ifndef VCMI_EMSCRIPTEN
 	if (getPreferredWindowMode() == EWindowMode::WINDOWED)
 	{
 		//we only check that our desired window size fits on screen
@@ -436,6 +437,7 @@ void ScreenHandler::validateSettings()
 			}
 		}
 	}
+#endif
 
 	if (getPreferredWindowMode() == EWindowMode::FULLSCREEN_EXCLUSIVE)
 	{
