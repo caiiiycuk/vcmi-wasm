@@ -24,6 +24,10 @@
 #include "../lib/VCMIDirs.h"
 #include "../lib/TerrainHandler.h"
 
+#ifdef VCMI_EMSCRIPTEN
+#include <emscripten.h>
+#endif
+
 
 #define VCMI_SOUND_NAME(x)
 #define VCMI_SOUND_FILE(y) #y,
@@ -617,6 +621,11 @@ MusicEntry::MusicEntry(CMusicHandler *owner, std::string setName, const AudioPat
 }
 MusicEntry::~MusicEntry()
 {
+#ifdef VCMI_EMSCRIPTEN
+	if (pendingMusic == this) {
+		pendingMusic = nullptr;
+	}
+#endif
 	if (playing && loop > 0)
 	{
 		assert(0);
@@ -635,6 +644,30 @@ MusicEntry::~MusicEntry()
 	if (music)
 		Mix_FreeMusic(music);
 }
+
+#ifdef VCMI_EMSCRIPTEN
+MusicEntry* MusicEntry::pendingMusic = nullptr;
+
+void playPendingMusic() {
+	if (MusicEntry::pendingMusic) {
+		try
+		{
+			auto musicFile = MakeSDLRWops(CResourceHandler::get()->load(MusicEntry::pendingMusic->currentName));
+			MusicEntry::pendingMusic->music = Mix_LoadMUS_RW(musicFile, SDL_TRUE);
+			MusicEntry::pendingMusic->play();
+		}
+		catch(std::exception &e)
+		{
+			logGlobal->error("Failed to load async music %s", MusicEntry::pendingMusic->currentName.getOriginalName());
+			logGlobal->error("Exception: %s", e.what());
+		}
+	}
+}
+
+extern "C" void EMSCRIPTEN_KEEPALIVE playMusic() {
+	playPendingMusic();
+}
+#endif
 
 void MusicEntry::load(const AudioPath & musicURI)
 {
@@ -656,6 +689,16 @@ void MusicEntry::load(const AudioPath & musicURI)
 
 	try
 	{
+#ifdef VCMI_EMSCRIPTEN
+		auto resourceName = CResourceHandler::get()->getResourceName(currentName);
+		if (resourceName.has_value() && boost::filesystem::file_size(resourceName.value()) == 0) {
+			MAIN_THREAD_EM_ASM((
+				Module.loadMusic($0);
+			), resourceName.value().c_str());
+			logGlobal->trace("Loading music %s from (%s)\n", currentName.getOriginalName(), resourceName.value().c_str());
+			return;
+		}
+#endif
 		auto musicFile = MakeSDLRWops(CResourceHandler::get()->load(currentName));
 		music = Mix_LoadMUS_RW(musicFile, SDL_TRUE);
 	}
@@ -683,6 +726,14 @@ bool MusicEntry::play()
 		const auto & iter = RandomGeneratorUtil::nextItem(set, CRandomGenerator::getDefault());
 		load(*iter);
 	}
+
+#ifdef VCMI_EMSCRIPTEN
+	if (!music) {
+		loop += 1;
+		pendingMusic = this;
+		return false;
+	}
+#endif
 
 	logGlobal->trace("Playing music file %s", currentName.getOriginalName());
 

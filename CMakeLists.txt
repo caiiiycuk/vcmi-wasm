@@ -140,8 +140,9 @@ if(EMSCRIPTEN)
 	add_link_options(
 		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1"
 		"-sSDL2_IMAGE_FORMATS=['bmp']"
-		"-sTOTAL_MEMORY=384Mb"
-		"-sALLOW_MEMORY_GROWTH=1"
+		"-sSTACK_SIZE=1Mb"
+		"-sTOTAL_MEMORY=512Mb"
+		"-sALLOW_MEMORY_GROWTH=0"
 		"-sPTHREAD_POOL_SIZE=6"
 		"-sPTHREAD_POOL_SIZE_STRICT=0"
 		"-sFORCE_FILESYSTEM=1"
@@ -156,6 +157,7 @@ if(EMSCRIPTEN)
 		"-sMALLOC=mimalloc"
 		"${RELEASE_OPT}"
 		# for debugging
+		# "-O1"
 		"--profiling-funcs"
 		"-sASSERTIONS=2"
 	)
@@ -168,6 +170,7 @@ if(EMSCRIPTEN)
 		"${CMAKE_CURRENT_LIST_DIR}"
 	)
 
+	# to get empty Mp3 folder do: truncate -s 0 ./Mp3_empty
 	add_custom_target(html5
 		COMMAND "rm" "-rf" "html5"
 		COMMAND "mkdir" "html5"
@@ -177,7 +180,7 @@ if(EMSCRIPTEN)
 			--preload "${CMAKE_CURRENT_LIST_DIR}/config@config"
 			--preload "${CMAKE_CURRENT_LIST_DIR}/Mods@Mods"
 			--preload "${CMAKE_CURRENT_LIST_DIR}/data/Maps@Maps"
-			--preload "${CMAKE_CURRENT_LIST_DIR}/data/Mp3@Mp3"
+			--preload "${CMAKE_CURRENT_LIST_DIR}/data/Mp3_empty@Mp3"
 			--js-output="html5/vcmi.data.js"
 		COMMAND "cp" "bin/vcmiclient*" "html5/")
 	add_dependencies(html5 vcmiclient)

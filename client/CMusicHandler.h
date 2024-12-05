@@ -101,6 +101,10 @@ class CMusicHandler;
 //Class for handling one music file
 class MusicEntry
 {
+#ifdef VCMI_EMSCRIPTEN
+	static MusicEntry* pendingMusic;
+	friend void playPendingMusic();
+#endif
 	CMusicHandler *owner;
 	Mix_Music *music;
 
