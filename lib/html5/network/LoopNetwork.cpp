@@ -31,7 +31,7 @@ struct LoopNetworkTimeout {
 
 struct LoopNetwork {
 	boost::mutex loopMutex;
-	boost::atomic_bool alive = true;
+	boost::atomic_uint8_t connected = 2;
 	std::shared_ptr<LoopClientConnection> client;
 	std::shared_ptr<LoopServerConnection> server;
 	std::list<LoopNetworkCommand> commands;
@@ -70,7 +70,7 @@ public:
 	}
 
 	void close() override {
-		loop->alive = false;
+		loop->connected -= 1;
 		loop->client.reset();
 	}
 };
@@ -91,7 +91,7 @@ public:
 	}
 
 	void close() override {
-		loop->alive = false;
+		loop->connected -= 1;
 		loop->server.reset();
 	}
 };
@@ -103,7 +103,7 @@ public:
 	LoopNetworkServer(std::shared_ptr<LoopNetwork>& loop): loop(loop) {
 	}
 	~LoopNetworkServer() {
-		loop->alive = false;
+		loop->connected = 0;
 	}
 
 	void start(uint16_t port) override {
@@ -112,7 +112,7 @@ public:
 		boost::thread processor([loop]() {
 			setThreadName("HTTP5 loop server");
 			LoopNetworkCommand command;
-			while (loop->alive) {
+			while (loop->connected > 0) {
 				command.type = IDLE;
 				std::vector<INetworkTimerListener*> timersToRun;
 				{
@@ -148,12 +148,12 @@ public:
 						loop->client->listener.onConnectionEstablished(loop->server);
 						break;
 					case SERVER_TO_CLIENT:
-						if (loop->alive && loop->client && loop->server) {
+						if (loop->connected > 0 && loop->client && loop->server) {
 							loop->client->listener.onPacketReceived(loop->server->shared_from_this(), command.message);
 						}
 						break;
 					case CLIENT_TO_SERVER:
-						if (loop->alive && loop->client && loop->server) {
+						if (loop->connected > 0 && loop->client && loop->server) {
 							loop->server->listener.onPacketReceived(loop->client->shared_from_this(), command.message);
 						}
 						break;
@@ -189,7 +189,7 @@ public:
 	}
 
 	void connectToRemote(INetworkClientListener & listener, const std::string & host, uint16_t port) override {
-		if (loop && loop->alive) {
+		if (loop && loop->connected > 0) {
 			logNetwork->info("Client attached to the loop");
 			loop->client = std::make_shared<LoopClientConnection>(loop, listener);
 			pushLoopCommand(loop, SERVER_CONNECT, {});
@@ -201,7 +201,7 @@ public:
 	}
 
 	void createTimer(INetworkTimerListener & listener, std::chrono::milliseconds duration) override {
-		if (loop && loop->alive) {
+		if (loop && loop->connected > 0) {
 			boost::mutex::scoped_lock lock(loop->loopMutex);
 			loop->timeouts.push_back({ listener, now() + duration });
 		} else {
@@ -213,9 +213,6 @@ public:
 	}
 
 	void stop() override {
-		if (loop) {
-			loop->alive = false;
-		}
 	}
 };
 

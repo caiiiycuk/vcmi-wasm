@@ -159,7 +159,7 @@ if(EMSCRIPTEN)
 		# for debugging
 		# "-O1"
 		"--profiling-funcs"
-		# "-sASSERTIONS=2"
+		"-sASSERTIONS=2"
 	)
 	include_directories(
 		"${CMAKE_BINARY_DIR}/boost/include"
