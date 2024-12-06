@@ -439,17 +439,23 @@ static void mainLoop()
 	setThreadName("MainGUI");
 #endif
 
-#ifdef VCMI_EMSCRIPTEN
-	// skip this frame if we can't lock the mutex
-	// otherwise browser will hang in renderer thread
-	if (!GH.interfaceMutex.try_lock()) {
-		return;
-	}
-	GH.interfaceMutex.unlock();
-#else
+#ifndef VCMI_EMSCRIPTEN
 	while(1) //main SDL events loop
 #endif
 	{
+#ifdef VCMI_HTML5_BUILD
+		// skip this frame if we can't lock the mutex
+		// otherwise browser will hang in renderer thread
+		if (!GH.interfaceMutex.try_lock()) {
+#ifdef VCMI_EMSCRIPTEN
+			return;
+#else
+			usleep(4000);
+			continue;
+#endif
+		}
+		GH.interfaceMutex.unlock();
+#endif
 
 		GH.input().fetchEvents();
 		GH.renderFrame();

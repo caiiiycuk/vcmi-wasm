@@ -27,6 +27,12 @@ class WindowHandler;
 class EventDispatcher;
 class InputHandler;
 
+#ifdef VCMI_HTML5_BUILD
+typedef boost::recursive_mutex ui_mutex;
+#else
+typedef boost::mutex ui_mutex;
+#endif
+
 // Handles GUI logic and drawing
 class CGuiHandler
 {
@@ -47,7 +53,7 @@ private:
 	std::unique_ptr<InputHandler> inputHandlerInstance;
 
 public:
-	boost::mutex interfaceMutex;
+	ui_mutex interfaceMutex;
 
 	/// returns current position of mouse cursor, relative to vcmi window
 	const Point & getCursorPosition() const;
