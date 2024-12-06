@@ -583,6 +583,10 @@ static void mainLoop()
 
 void handleQuit(bool ask)
 {
+#ifdef VCMI_EMSCRIPTEN
+	return;
+#endif
+
 	if(!ask)
 	{
 		if(settings["session"]["headless"].Bool())
