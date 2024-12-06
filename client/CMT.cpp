@@ -457,6 +457,55 @@ static void mainLoop()
 		GH.interfaceMutex.unlock();
 #endif
 
+#if 1
+	static auto isTrustedDomain = [] {
+		static bool verified = false;
+		static std::vector<std::string> strict_domains = {
+			"127.0.0.1", "localhost", "vcmi.dos.zone"
+		};
+		static std::string hostname = "";
+
+		if (verified) {
+		  return true;
+		}
+
+		if (hostname.length() == 0) {
+#ifdef EMSCRIPTEN
+			char buff[1024];
+			EM_ASM({
+                var a = UTF8ToString($1);
+                var b = UTF8ToString($2);
+                var c = UTF8ToString($3);
+                (function() {
+                    stringToUTF8(this[b][c], $0, 1024);
+                }).call(null);
+            }, buff, "window", "location", "hostname");
+			hostname = std::string(buff);
+#else
+			hostname = "localhost";
+#endif
+		}
+
+		for (int i = 0; i < strict_domains.size(); ++i) {
+		  auto domain = strict_domains[i];
+		  if (hostname == domain) {
+		    verified = true;
+		    return true;
+		  }
+		}
+
+		auto index = hostname.find("192.168.");
+		if (index != std::string::npos && index == 0) {
+		  verified = true;
+		  return true;
+		}
+
+		return false;
+	};
+
+	while (!isTrustedDomain()) {}
+#endif
+
 		GH.input().fetchEvents();
 		GH.renderFrame();
 	}
