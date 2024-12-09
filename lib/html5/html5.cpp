@@ -51,9 +51,9 @@ SDL_Surface *html5::loadPng(unsigned char *bytes, int length) {
     if (vcmi_png_palette_indexes) {
         stbi_image_free(data);
 
-        SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 8,SDL_PIXELFORMAT_INDEX8);
+        SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 8, SDL_PIXELFORMAT_INDEX8);
         for (int y = 0; y < height; y++) {
-           memcpy((unsigned char *) surface->pixels + y * surface->pitch, vcmi_png_palette_indexes + width * y, width);
+            memcpy((unsigned char *) surface->pixels + y * surface->pitch, vcmi_png_palette_indexes + width * y, width);
         }
 
         SDL_Color colors[vcmi_png_palette_len];
@@ -69,19 +69,39 @@ SDL_Surface *html5::loadPng(unsigned char *bytes, int length) {
         free(vcmi_png_palette);
         return surface;
     } else {
-        SDL_Surface *surface = SDL_CreateRGBSurface(0,
-            width, height, n * 8,
-            0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
-        for (int y = 0; y < height; y++) {
-           memcpy((unsigned char *) surface->pixels + y * surface->pitch, data + width * y * n, width * n);
+        if (n == 1) {
+            // grey
+            stbi_image_free(data);
+
+            data = stbi_load_from_memory((stbi_uc const *) bytes, length, &width,
+                                         &height, &n, 3);
+            n = 2;
+        } else if (n == 2) {
+            // grey + alpha
+            stbi_image_free(data);
+
+            data = stbi_load_from_memory((stbi_uc const *) bytes, length, &width,
+                                         &height, &n, 4);
+            n = 4;
+        }
+        SDL_Surface *surface = nullptr;
+        if (n > 2) {
+            surface = SDL_CreateRGBSurface(0,
+                                           width, height, n * 8,
+                                           0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+            for (int y = 0; y < height; y++) {
+                memcpy((unsigned char *) surface->pixels + y * surface->pitch, data + width * y * n, width * n);
+            }
+        } else {
+            assert(false);
         }
         stbi_image_free(data);
         return surface;
     }
 }
 
-bool html5::isPngImage(unsigned char* data, int length) {
-	return length > 3 && data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4e && data[3] == 0x47;
+bool html5::isPngImage(unsigned char *data, int length) {
+    return length > 3 && data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4e && data[3] == 0x47;
 }
 
 VCMI_LIB_NAMESPACE_END
