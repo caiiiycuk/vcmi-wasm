@@ -143,7 +143,7 @@ if(EMSCRIPTEN)
 		"-sSTACK_SIZE=1Mb"
 		"-sTOTAL_MEMORY=384Mb"
 		"-sALLOW_MEMORY_GROWTH=1"
-		"-sPTHREAD_POOL_SIZE=6"
+		"-sPTHREAD_POOL_SIZE=24"
 		"-sPTHREAD_POOL_SIZE_STRICT=0"
 		"-sFORCE_FILESYSTEM=1"
 		"-sEXPORT_NAME=VCMI"
@@ -156,9 +156,10 @@ if(EMSCRIPTEN)
 		"-fwasm-exceptions"
 		"-sMALLOC=mimalloc"
 		"${RELEASE_OPT}"
+		"--emit-symbols-map"
 		# for debugging
 		# "-O1"
-		"--profiling-funcs"
+		# "--profiling-funcs"
 		# "-sASSERTIONS=2"
 	)
 	include_directories(
