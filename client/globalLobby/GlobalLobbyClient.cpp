@@ -449,7 +449,11 @@ void GlobalLobbyClient::connect()
 {
 	std::string hostname = getServerHost();
 	uint16_t port = getServerPort();
+#ifdef VCMI_HTML5_BUILD
+	CSH->getNetworkRemoteHandler().connectToRemote(*this, hostname, port);
+#else
 	CSH->getNetworkHandler().connectToRemote(*this, hostname, port);
+#endif
 }
 
 bool GlobalLobbyClient::isLoggedIn() const
