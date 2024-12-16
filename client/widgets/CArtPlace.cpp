@@ -260,7 +260,7 @@ bool ArtifactUtilsClient::askToAssemble(const CGHeroInstance * hero, const Artif
 	{
 		auto askThread = new boost::thread([hero, art, slot, assemblyPossibilities]() -> void
 			{
-				boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+				ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 				for(const auto combinedArt : assemblyPossibilities)
 				{
 					bool assembleConfirmed = false;

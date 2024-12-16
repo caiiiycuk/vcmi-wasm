@@ -112,7 +112,7 @@ void CGuiHandler::stopTextInput()
 void CGuiHandler::renderFrame()
 {
 	{
-		boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+		ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 
 		if (nullptr != curInt)
 			curInt->update();
@@ -127,7 +127,7 @@ void CGuiHandler::renderFrame()
 	SDL_RenderCopy(mainRenderer, screenTexture, nullptr, nullptr);
 
 	{
-		boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+		ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 
 		CCS->curh->render();
 
