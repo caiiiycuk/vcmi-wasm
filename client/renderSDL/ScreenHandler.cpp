@@ -151,12 +151,14 @@ Point ScreenHandler::getRenderResolution() const
 
 Point ScreenHandler::getPreferredWindowResolution() const
 {
+#if !defined(VCMI_HTML5_BUILD)
 	if (getPreferredWindowMode() == EWindowMode::FULLSCREEN_BORDERLESS_WINDOWED)
 	{
 		SDL_Rect bounds;
 		if (SDL_GetDisplayBounds(getPreferredDisplayIndex(), &bounds) == 0)
 			return Point(bounds.w, bounds.h);
 	}
+#endif
 
 	const JsonNode & video = settings["video"];
 	int width = video["resolution"]["width"].Integer();
@@ -184,7 +186,9 @@ int ScreenHandler::getPreferredDisplayIndex() const
 
 EWindowMode ScreenHandler::getPreferredWindowMode() const
 {
-#ifdef VCMI_MOBILE
+#ifdef VCMI_HTML5_BUILD
+	return EWindowMode::WINDOWED;
+#elif VCMI_MOBILE
 	// On Android / ios game will always render to screen size
 	return EWindowMode::FULLSCREEN_BORDERLESS_WINDOWED;
 #else
@@ -257,7 +261,7 @@ void ScreenHandler::recreateWindowAndScreenBuffers()
 
 void ScreenHandler::updateWindowState()
 {
-#ifndef VCMI_MOBILE
+#if !defined(VCMI_MOBILE) && !defined(VCMI_HTML5_BUILD)
 	int displayIndex = getPreferredDisplayIndex();
 
 	switch(getPreferredWindowMode())
