@@ -180,10 +180,10 @@ void CaptureObjectsBehavior::decomposeObjects(
 
 	logAi->debug("Scanning objects, count %d", objs.size());
 
-	// tbb::blocked_range<size_t> r(0, objs.size());
-	tbb::parallel_for(
-		tbb::blocked_range<size_t>(0, objs.size()),
-		[this, &objs, &sync, &result, nullkiller](const tbb::blocked_range<size_t> & r)
+	// vcmi::blocked_range<size_t> r(0, objs.size());
+	vcmi::parallel_for(
+		vcmi::blocked_range<size_t>(0, objs.size()),
+		[this, &objs, &sync, &result, nullkiller](const vcmi::blocked_range<size_t> & r)
 		{
 			std::vector<AIPath> paths;
 			Goals::TGoalVec tasksLocal;

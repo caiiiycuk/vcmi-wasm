@@ -34,11 +34,10 @@
 #include "tbb/concurrent_unordered_map.h"
 #include "tbb/concurrent_unordered_set.h"
 #include "tbb/concurrent_vector.h"
-#include "tbb/parallel_for.h"
-#include "tbb/parallel_invoke.h"
 
 /*********************** TBB.h ********************/
 
+#include "../../lib/parallel_for.h"
 #include "../../lib/VCMI_Lib.h"
 #include "../../lib/CCreatureHandler.h"
 #include "../../lib/spells/CSpellHandler.h"

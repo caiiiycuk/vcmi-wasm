@@ -19,6 +19,7 @@
 #include "../CMT.h"
 #include "../xBRZ/xbrz.h"
 
+#include "../../lib/parallel_for.h"
 #include "../../lib/GameConstants.h"
 
 #include <tbb/parallel_for.h>
@@ -693,7 +694,7 @@ SDL_Surface * CSDL_Ext::scaleSurfaceIntegerFactor(SDL_Surface * surf, int factor
 			{
 				// xbrz recommends granulation of 16, but according to tests, for smaller images granulation of 4 is actually the best option
 				const int granulation = intermediate->h > 400 ? 16 : 4;
-				tbb::parallel_for(tbb::blocked_range<size_t>(0, intermediate->h, granulation), [factor, srcPixels, dstPixels, intermediate, format](const tbb::blocked_range<size_t> & r)
+				vcmi::parallel_for(vcmi::blocked_range<size_t>(0, intermediate->h, granulation), [factor, srcPixels, dstPixels, intermediate, format](const vcmi::blocked_range<size_t> & r)
 				{
 					xbrz::scale(factor, srcPixels, dstPixels, intermediate->w, intermediate->h, format, {}, r.begin(), r.end());
 				});
