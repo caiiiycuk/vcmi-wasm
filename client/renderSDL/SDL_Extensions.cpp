@@ -20,6 +20,7 @@
 #include "../CMT.h"
 #include "../xBRZ/xbrz.h"
 
+#include "../../lib/parallel_for.h"
 #include "../../lib/GameConstants.h"
 
 #include <tbb/parallel_for.h>

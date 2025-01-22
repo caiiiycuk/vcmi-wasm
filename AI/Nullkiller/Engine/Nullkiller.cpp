@@ -191,7 +191,7 @@ Goals::TTaskVec Nullkiller::buildPlan(TGoalVec & tasks, int priorityTier) const
 {
 	TaskPlan taskPlan;
 
-	tbb::parallel_for(tbb::blocked_range<size_t>(0, tasks.size()), [this, &tasks, priorityTier](const tbb::blocked_range<size_t> & r)
+	vcmi::parallel_for(vcmi::blocked_range<size_t>(0, tasks.size()), [this, &tasks, priorityTier](const vcmi::blocked_range<size_t> & r)
 		{
 			auto evaluator = this->priorityEvaluators->acquire();
 

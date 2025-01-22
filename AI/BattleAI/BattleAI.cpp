@@ -14,7 +14,7 @@
 
 #include "StackWithBonuses.h"
 #include "EnemyInfo.h"
-#include "tbb/parallel_for.h"
+#include "../../lib/parallel_for.h"
 #include "../../lib/CStopWatch.h"
 #include "../../lib/CThreadHelper.h"
 #include "../../lib/mapObjects/CGTownInstance.h"
