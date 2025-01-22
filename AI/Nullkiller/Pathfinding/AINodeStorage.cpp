@@ -125,7 +125,7 @@ void AINodeStorage::initialize(const PathfinderOptions & options, const CGameSta
 
 	//Each thread gets different x, but an array of y located next to each other in memory
 
-	tbb::parallel_for(tbb::blocked_range<size_t>(0, sizes.x), [&](const tbb::blocked_range<size_t>& r)
+	vcmi::parallel_for(vcmi::blocked_range<size_t>(0, sizes.x), [&](const vcmi::blocked_range<size_t>& r)
 	{
 		int3 pos;
 
@@ -500,7 +500,7 @@ public:
 		newChains.reserve(storage.getBucketCount() * storage.getBucketSize());
 	}
 
-	void execute(const tbb::blocked_range<size_t>& r)
+	void execute(const vcmi::blocked_range<size_t>& r)
 	{
 		std::random_device randomDevice;
 		std::mt19937 randomEngine(randomDevice());
@@ -596,7 +596,7 @@ bool AINodeStorage::calculateHeroChain()
 
 		std::shuffle(data.begin(), data.end(), randomEngine);
 
-		tbb::parallel_for(tbb::blocked_range<size_t>(0, data.size()), [&](const tbb::blocked_range<size_t>& r)
+		vcmi::parallel_for(vcmi::blocked_range<size_t>(0, data.size()), [&](const vcmi::blocked_range<size_t>& r)
 		{
 			//auto r = blocked_range<size_t>(0, data.size());
 			HeroChainCalculationTask task(*this, data, chainMask, heroChainTurn);
@@ -612,7 +612,7 @@ bool AINodeStorage::calculateHeroChain()
 	}
 	else
 	{
-		auto r = tbb::blocked_range<size_t>(0, data.size());
+		auto r = vcmi::blocked_range<size_t>(0, data.size());
 		HeroChainCalculationTask task(*this, data, chainMask, heroChainTurn);
 
 		task.execute(r);
@@ -1255,7 +1255,7 @@ void AINodeStorage::calculateTownPortalTeleportations(std::vector<CGPathNode *> 
 #if 0
 	if (actorsVector.size() * initialNodes.size() > 1000)
 	{
-		tbb::parallel_for(tbb::blocked_range<size_t>(0, actorsVector.size()), [&](const tbb::blocked_range<size_t> & r)
+		vcmi::parallel_for(vcmi::blocked_range<size_t>(0, actorsVector.size()), [&](const vcmi::blocked_range<size_t> & r)
 			{
 				for(int i = r.begin(); i != r.end(); i++)
 				{
