@@ -28,6 +28,10 @@
 #	include "ios/utils.h"
 #endif
 
+#ifdef VCMI_HTML5_BUILD
+#include "../lib/html5/html5.h"
+#endif
+
 #include <SDL.h>
 
 // TODO: should be made into a private members of ScreenHandler
@@ -101,6 +105,13 @@ int ScreenHandler::getInterfaceScalingPercentage() const
 		// for PC - avoid downscaling if possible
 		int preferredMinimalScaling = 100;
 #endif
+
+#ifdef VCMI_HTML5_BUILD
+		if (html5::isMobile()) {
+			preferredMinimalScaling = 100;
+		}
+#endif
+
 		// prefer a little below maximum - to give space for extended UI
 		int preferredMaximalScaling = maximalScaling * 10 / 12;
 		userScaling = std::max(std::min(maximalScaling, preferredMinimalScaling), preferredMaximalScaling);
