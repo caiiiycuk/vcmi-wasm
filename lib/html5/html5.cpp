@@ -131,6 +131,9 @@ bool html5::isPngImage(unsigned char *data, int length) {
 EM_JS(bool, jsMainThread, (), {
     return typeof importScripts === 'function';
 });
+EM_JS(bool, jsMobile, (), {
+    return typeof importScripts === 'function';
+});
 #endif
 
 bool html5::isMainThread() {
@@ -140,6 +143,15 @@ bool html5::isMainThread() {
     return false;
 #endif
 }
+
+bool html5::isMobile() {
+#ifdef EMSCRIPTEN
+    return jsMobile();
+#else
+    return false;
+#endif
+}
+
 
 
 VCMI_LIB_NAMESPACE_END
