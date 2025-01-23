@@ -14,6 +14,7 @@ namespace html5 {
     bool isPngImage(unsigned char* data, int length);
     SDL_Surface* loadPng(unsigned char* data, int length, const char* filename);
     void savePng(SDL_Surface *surf, const char* filename);
+    bool isMainThread();
 }
 
 VCMI_LIB_NAMESPACE_END
