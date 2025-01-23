@@ -127,4 +127,19 @@ bool html5::isPngImage(unsigned char *data, int length) {
     return length > 3 && data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4e && data[3] == 0x47;
 }
 
+#ifdef EMSCRIPTEN
+EM_JS(bool, jsMainThread, (), {
+    return typeof importScripts === 'function';
+});
+#endif
+
+bool html5::isMainThread() {
+#ifdef EMSCRIPTEN
+    return jsMainThread();
+#else
+    return false;
+#endif
+}
+
+
 VCMI_LIB_NAMESPACE_END

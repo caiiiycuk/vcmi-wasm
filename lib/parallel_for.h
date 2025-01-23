@@ -6,24 +6,20 @@
 #define PARALLEL_FOR_H
 
 #ifdef VCMI_HTML5_BUILD
+#include <tbb/parallel_for.h>
+#include "html5/html5.h"
+
 namespace vcmi {
     template<typename Value>
-    class blocked_range {
-        Value _begin;
-        Value _end;
-
-    public:
-        blocked_range(const Value& begin, const Value& end, int grain_size = 1):
-            _begin(begin), _end(end) {}
-
-        const Value& begin() const { return _begin; }
-        const Value& end() const { return _end; }
-
-
-    };
+    using blocked_range = tbb::blocked_range<Value>;
     template<typename R, typename B>
     void parallel_for(R r, B fn) {
-        fn(r);
+        if (html5::isMainThread()) {
+            fn(r);
+        } else {
+            tbb::parallel_for(tbb::blocked_range(r.begin(), r.end(),
+                std::max((r.end() - r.begin() / 4), r.grainsize())), fn);
+        }
     }
 }
 #else
