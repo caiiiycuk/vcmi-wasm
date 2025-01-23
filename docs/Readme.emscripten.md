@@ -23,9 +23,7 @@ Current cmake build supports only linux environment.
 6. Now build the required libraries
 
    ```
-   ninja boost-lib
-   ninja tbb-lib
-   ninja vcmi-extras
+   ninja boost-lib tbb-lib
    ```
    
 7. Finally is time to build vcmiclient.js:
