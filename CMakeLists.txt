@@ -117,15 +117,6 @@ if(EMSCRIPTEN)
 			BUILD_COMMAND "${CMAKE_MAKE_PROGRAM}" "tbb" "tbbmalloc"
 			INSTALL_COMMAND "${CMAKE_MAKE_PROGRAM}" "install" "tbb" "tbbmalloc"
 	)
-	ExternalProject_Add(vcmi-extras
-			PREFIX "vcmi-extras"
-			GIT_REPOSITORY "https://github.com/vcmi-mods/vcmi-extras"
-			GIT_TAG "vcmi-1.6"
-			BUILD_IN_SOURCE true
-			CONFIGURE_COMMAND ""
-			BUILD_COMMAND ""
-			INSTALL_COMMAND ""
-	)
 
 	set(emclient_LIBS boost_thread boost_system boost_program_options boost_locale boost_filesystem boost_date_time boost_atomic boost_chrono tbb tbbmalloc)
 
@@ -142,7 +133,7 @@ if(EMSCRIPTEN)
 		"-sUSE_SDL=2" "-sUSE_SDL_IMAGE=2" "-sUSE_SDL_MIXER=2" "-sUSE_SDL_TTF=2" "-sUSE_ZLIB=1"
 		"-sSDL2_IMAGE_FORMATS=['bmp']"
 		"-sSTACK_SIZE=1Mb"
-		"-sTOTAL_MEMORY=384Mb"
+		"-sTOTAL_MEMORY=512Mb"
 		"-sALLOW_MEMORY_GROWTH=1"
 		"-sPTHREAD_POOL_SIZE=24"
 		"-sPTHREAD_POOL_SIZE_STRICT=0"
@@ -178,8 +169,6 @@ if(EMSCRIPTEN)
 		COMMAND "mkdir" "html5"
 		COMMAND python3 "${EMSCRIPTEN_ROOT_PATH}/tools/file_packager.py"
 			"html5/vcmi.data" --no-node --from-emcc
-			--preload "${CMAKE_BINARY_DIR}/vcmi-extras/src/vcmi-extras/Mods@Mods/vcmi-extras/Mods"
-			--preload "${CMAKE_BINARY_DIR}/vcmi-extras/src/vcmi-extras/mod.json@Mods/vcmi-extras/mod.json"
 			--preload "${CMAKE_CURRENT_LIST_DIR}/config@config"
 			--preload "${CMAKE_CURRENT_LIST_DIR}/Mods@Mods"
 			--preload "${CMAKE_CURRENT_LIST_DIR}/data/Mp3_empty@Mp3"
