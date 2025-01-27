@@ -75,7 +75,7 @@ void ClientCommandManager::handleGoSoloCommand()
 {
 	Settings session = settings.write["session"];
 
-	ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+	boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 
 	if(!CSH->client)
 	{
@@ -128,7 +128,7 @@ void ClientCommandManager::handleControlaiCommand(std::istringstream& singleWord
 	singleWordBuffer >> colorName;
 	boost::to_lower(colorName);
 
-	ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+	boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 
 	if(!CSH->client)
 	{
@@ -543,7 +543,7 @@ void ClientCommandManager::printCommandMessage(const std::string &commandMessage
 
 	if(currentCallFromIngameConsole)
 	{
-		ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+		boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 		if(LOCPLINT && LOCPLINT->cingconsole)
 		{
 			LOCPLINT->cingconsole->addMessage("", "System", commandMessage);
