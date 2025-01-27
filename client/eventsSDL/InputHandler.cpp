@@ -193,7 +193,7 @@ void InputHandler::preprocessEvent(const SDL_Event & ev)
 {
 	if(ev.type == SDL_QUIT)
 	{
-		ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+		boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 #ifdef VCMI_ANDROID
 		handleQuit(false);
 #else
@@ -206,21 +206,21 @@ void InputHandler::preprocessEvent(const SDL_Event & ev)
 		if(ev.key.keysym.sym == SDLK_F4 && (ev.key.keysym.mod & KMOD_ALT))
 		{
 			// FIXME: dead code? Looks like intercepted by OS/SDL and delivered as SDL_Quit instead?
-			ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+			boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 			handleQuit(true);
 			return;
 		}
 
 		if(ev.key.keysym.scancode == SDL_SCANCODE_AC_BACK && !settings["input"]["handleBackRightMouseButton"].Bool())
 		{
-			ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+			boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 			handleQuit(true);
 			return;
 		}
 	}
 	else if(ev.type == SDL_USEREVENT)
 	{
-		ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+		boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 		handleUserEvent(ev.user);
 
 		return;
@@ -231,14 +231,14 @@ void InputHandler::preprocessEvent(const SDL_Event & ev)
 			case SDL_WINDOWEVENT_RESTORED:
 #ifndef VCMI_IOS
 			{
-				ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+				boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 				GH.onScreenResize(false);
 			}
 #endif
 				break;
 			case SDL_WINDOWEVENT_FOCUS_GAINED:
 			{
-				ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+				boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 				if(settings["general"]["audioMuteFocus"].Bool()) {
 					CCS->musich->setVolume(settings["general"]["music"].Integer());
 					CCS->soundh->setVolume(settings["general"]["sound"].Integer());
@@ -247,7 +247,7 @@ void InputHandler::preprocessEvent(const SDL_Event & ev)
 				break;
 			case SDL_WINDOWEVENT_FOCUS_LOST:
 			{
-				ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+				boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 				if(settings["general"]["audioMuteFocus"].Bool()) {
 					CCS->musich->setVolume(0);
 					CCS->soundh->setVolume(0);
@@ -259,7 +259,7 @@ void InputHandler::preprocessEvent(const SDL_Event & ev)
 	}
 	else if(ev.type == SDL_SYSWMEVENT)
 	{
-		ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+		boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 		if(!settings["session"]["headless"].Bool() && settings["general"]["notifications"].Bool())
 		{
 			NotificationHandler::handleSdlEvent(ev);
@@ -284,7 +284,7 @@ void InputHandler::preprocessEvent(const SDL_Event & ev)
 	//preprocessing
 	if(ev.type == SDL_MOUSEMOTION)
 	{
-		ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+		boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 		if (CCS && CCS->curh)
 			CCS->curh->cursorMove(ev.motion.x, ev.motion.y);
 	}
