@@ -530,7 +530,7 @@ void CClient::removeGUI() const
 #ifdef VCMI_ANDROID
 extern "C" JNIEXPORT jboolean JNICALL Java_eu_vcmi_vcmi_NativeMethods_tryToSaveTheGame(JNIEnv * env, jclass cls)
 {
-	ui_mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+	boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
 
 	logGlobal->info("Received emergency save game request");
 	if(!LOCPLINT || !LOCPLINT->cb)

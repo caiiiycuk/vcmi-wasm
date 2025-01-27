@@ -9,7 +9,6 @@
  */
  #pragma once
 
-#include "gui/UiMutex.h"
 #include "../lib/constants/EntityIdentifiers.h"
 #include "../lib/networkPacks/ArtifactLocation.h"
 
@@ -25,7 +24,7 @@ class ArtifactsUIController
 	size_t numOfArtsAskAssembleSession;
 	std::set<ArtifactID> ignoredArtifacts;
 
-	ui_mutex askAssembleArtifactMutex;
+	boost::mutex askAssembleArtifactMutex;
 
 public:
 	ArtifactsUIController();
