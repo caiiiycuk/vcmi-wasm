@@ -45,6 +45,7 @@ uint16_t ServerThreadRunner::start(uint16_t cfgport, bool connectToLobby, std::s
 
 	std::promise<uint16_t> promise;
 
+#ifndef VCMI_HTML5_BUILD
 	threadRunLocalServer = boost::thread([this, connectToLobby, &promise]{
 		setThreadName("runServer");
 		uint16_t port = server->prepare(connectToLobby);
@@ -57,6 +58,11 @@ uint16_t ServerThreadRunner::start(uint16_t cfgport, bool connectToLobby, std::s
 	logNetwork->debug("Server port: %d", srvport);
 
 	return srvport;
+#else
+	auto port = server->prepare(connectToLobby);
+	server->run();
+	return port;
+#endif
 }
 
 void ServerThreadRunner::shutdown()
@@ -66,7 +72,9 @@ void ServerThreadRunner::shutdown()
 
 void ServerThreadRunner::wait()
 {
+#ifndef VCMI_HTML5_BUILD
 	threadRunLocalServer.join();
+#endif
 }
 
 int ServerThreadRunner::exitCode()
