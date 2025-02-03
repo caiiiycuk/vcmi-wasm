@@ -24,7 +24,6 @@
 #include "html5/html5.h"
 #endif
 
-#include <tbb/parallel_for.h>
 #include <tbb/task_arena.h>
 
 #include <SDL_image.h>

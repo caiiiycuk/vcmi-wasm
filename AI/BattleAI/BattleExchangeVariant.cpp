@@ -11,7 +11,6 @@
 #include "BattleExchangeVariant.h"
 #include "BattleEvaluator.h"
 #include "../../lib/CStack.h"
-#include "tbb/parallel_for.h"
 
 AttackerValue::AttackerValue()
 	: value(0),

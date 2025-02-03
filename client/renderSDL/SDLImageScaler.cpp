@@ -15,7 +15,7 @@
 #include "../CMT.h"
 #include "../xBRZ/xbrz.h"
 
-#include <tbb/parallel_for.h>
+#include "../lib/parallel_for.h"
 #include <SDL_surface.h>
 
 SDLImageOptimizer::SDLImageOptimizer(SDL_Surface * surf, const Rect & virtualDimensions)
@@ -182,7 +182,7 @@ void SDLImageScaler::scaleSurfaceIntegerFactor(int factor, EScalingAlgorithm alg
 			{
 				// xbrz recommends granulation of 16, but according to tests, for smaller images granulation of 4 is actually the best option
 				const int granulation = intermediate->h > 400 ? 16 : 4;
-				tbb::parallel_for(tbb::blocked_range<size_t>(0, intermediate->h, granulation), [this, factor, srcPixels, dstPixels, format](const tbb::blocked_range<size_t> & r)
+				vcmi::parallel_for(vcmi::blocked_range<size_t>(0, intermediate->h, granulation), [this, factor, srcPixels, dstPixels, format](const tbb::blocked_range<size_t> & r)
 								  {
 									  xbrz::scale(factor, srcPixels, dstPixels, intermediate->w, intermediate->h, format, {}, r.begin(), r.end());
 								  });
