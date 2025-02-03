@@ -261,7 +261,17 @@ std::shared_ptr<SDLImageShared> SDLImageShared::createScaled(const SDLImageShare
 {
 	auto self = std::make_shared<SDLImageShared>(nullptr);
 
+#ifdef VCMI_HTML5_BUILD
+	class UpscalingArena {
+	public:
+		void enqueue(std::function<void()> fn) {
+			fn();
+		}
+	};
+	static tbb::task_arena upscalingArena(4);
+#else
 	static tbb::task_arena upscalingArena;
+#endif
 
 	self->upscalingInProgress = true;
 
@@ -276,10 +286,19 @@ std::shared_ptr<SDLImageShared> SDLImageShared::createScaled(const SDLImageShare
 		self->upscalingInProgress = false;
 	};
 
-	if(settings["video"]["asyncUpscaling"].Bool())
+	if(settings["video"]["asyncUpscaling"].Bool()) {
+#ifdef VCMI_HTML5_BUILD
+		if (html5::isMainThread()) {
+			scalingTask();
+		} else {
+			upscalingArena.enqueue(scalingTask);
+		}
+#else
 		upscalingArena.enqueue(scalingTask);
-	else
+#endif
+	} else {
 		scalingTask();
+	}
 
 	return self;
 }
