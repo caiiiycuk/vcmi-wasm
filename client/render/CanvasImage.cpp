@@ -18,6 +18,9 @@
 
 #include <SDL_image.h>
 #include <SDL_surface.h>
+#ifdef VCMI_HTML5_BUILD
+#include "../lib/html5/html5.h"
+#endif
 
 CanvasImage::CanvasImage(const Point & size, CanvasScalingPolicy scalingPolicy)
 	: surface(CSDL_Ext::newSurface(scalingPolicy == CanvasScalingPolicy::IGNORE ? size : (size * GH.screenHandler().getScalingFactor())))
@@ -45,7 +48,11 @@ void CanvasImage::scaleTo(const Point & size, EScalingAlgorithm algorithm)
 
 void CanvasImage::exportBitmap(const boost::filesystem::path & path) const
 {
+#ifdef VCMI_HTML5_BUILD
+	html5::savePng(surface, path.string().c_str());
+#else
 	IMG_SavePNG(surface, path.string().c_str());
+#endif
 }
 
 Canvas CanvasImage::getCanvas()

@@ -251,7 +251,18 @@ std::shared_ptr<const ISharedImage> SDLImageShared::scaleInteger(int factor, SDL
 
 SDLImageShared::SDLImageShared(const SDLImageShared * from, int integerScaleFactor, EScalingAlgorithm algorithm)
 {
+#ifdef VCMI_HTML5_BUILD
+	class UpscalingArena {
+	public:
+		void enqueue(std::function<void()> fn) {
+			fn();
+		}
+	};
+	static UpscalingArena upscalingMainThread;
+	static tbb::task_arena upscalingArena(4);
+#else
 	static tbb::task_arena upscalingArena;
+#endif
 
 	upscalingInProgress = true;
 
@@ -267,7 +278,15 @@ SDLImageShared::SDLImageShared(const SDLImageShared * from, int integerScaleFact
 		upscalingInProgress = false;
 	};
 
+#ifdef VCMI_HTML5_BUILD
+	if (html5::isMainThread()) {
+		upscalingMainThread.enqueue(scalingTask);
+	} else {
+		upscalingArena.enqueue(scalingTask);
+	}
+#else
 	upscalingArena.enqueue(scalingTask);
+#endif
 }
 
 bool SDLImageShared::isLoading() const
