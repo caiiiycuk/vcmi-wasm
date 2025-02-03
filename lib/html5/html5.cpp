@@ -13,6 +13,19 @@
 
 VCMI_LIB_NAMESPACE_BEGIN
 
+namespace {
+    SDL_Surface *copySurface(SDL_Surface *surf) {
+        SDL_Surface *copy = SDL_CreateRGBSurfaceWithFormat(0, surf->w, surf->h, surf->format->BitsPerPixel,
+                                                           surf->format->format);
+        if (surf->format->palette) {
+            SDL_SetSurfacePalette(copy, surf->format->palette);
+        }
+
+        SDL_BlitSurface(surf, NULL, copy, NULL);
+        return copy;
+    }
+}
+
 void html5::fsUpdate(const char *path) {
     std::ifstream infile(path);
     if (!infile.is_open()) {
@@ -39,11 +52,11 @@ stbi_uc *vcmi_png_palette;
 int vcmi_png_palette_len;
 int vcmi_png_palette_n;
 
-std::unordered_map<std::string, SDL_Surface*> generatedSurfaces;
+std::unordered_map<std::string, SDL_Surface *> generatedSurfaces;
 
 SDL_Surface *html5::loadPng(unsigned char *bytes, int length, const char *filename) {
     if (generatedSurfaces.find(filename) != generatedSurfaces.end()) {
-        return generatedSurfaces[filename];
+        return copySurface(generatedSurfaces[filename]);
     }
     int width, height, n;
     vcmi_png_palette_indexes = nullptr;
@@ -104,23 +117,23 @@ SDL_Surface *html5::loadPng(unsigned char *bytes, int length, const char *filena
     }
 }
 
-void html5::savePng(SDL_Surface *surf, const char* filename) {
-    SDL_Surface *copy = SDL_CreateRGBSurfaceWithFormat(0, surf->w, surf->h, surf->format->BitsPerPixel, surf->format->format);
-    if (surf->format->palette) {
-        SDL_SetSurfacePalette(copy, surf->format->palette);
+void html5::savePng(SDL_Surface *surf, const char *filename) {
+    if (generatedSurfaces.find(filename) != generatedSurfaces.end()) {
+        delete generatedSurfaces[filename];
+    } else {
+        FILE *f = fopen(filename, "wb");
+        if (f) {
+            unsigned char pngMagic[] = {
+                // png magic
+                0x89, 0x50, 0x4E, 0x47,
+                // is pcx test
+                0, 0, 0, 0, 0, 0, 0, 0
+            };
+            fwrite(pngMagic, 1, sizeof(pngMagic), f);
+            fclose(f);
+        }
     }
-    SDL_BlitSurface(surf, NULL, copy, NULL);
-    generatedSurfaces[filename] = copy;
-    FILE *f = fopen(filename, "wb");
-    if (f) {
-        unsigned char pngMagic[] = {
-            // png magic
-            0x89, 0x50, 0x4E, 0x47,
-            // is pcx test
-            0, 0, 0, 0, 0, 0, 0, 0};
-        fwrite(pngMagic, 1, sizeof(pngMagic), f);
-        fclose(f);
-    }
+    generatedSurfaces[filename] = copySurface(surf);
 }
 
 bool html5::isPngImage(unsigned char *data, int length) {
@@ -151,7 +164,6 @@ bool html5::isMobile() {
     return false;
 #endif
 }
-
 
 
 VCMI_LIB_NAMESPACE_END
