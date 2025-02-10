@@ -7,6 +7,10 @@
 #include "../StdInc.h"
 #include <SDL2/SDL_surface.h>
 
+#ifdef EMSCRIPTEN
+#include "Point.h"
+#endif
+
 VCMI_LIB_NAMESPACE_BEGIN
 
 namespace html5 {
@@ -16,6 +20,9 @@ namespace html5 {
     void savePng(SDL_Surface *surf, const char* filename);
     bool isMobile();
     bool isMainThread();
+#ifdef EMSCRIPTEN
+    Point getPreferredWindowResolution();
+#endif
 }
 
 VCMI_LIB_NAMESPACE_END

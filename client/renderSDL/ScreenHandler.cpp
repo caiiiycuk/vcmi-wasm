@@ -162,14 +162,16 @@ Point ScreenHandler::getRenderResolution() const
 
 Point ScreenHandler::getPreferredWindowResolution() const
 {
-#if !defined(VCMI_HTML5_BUILD)
+#if EMSCRIPTEN
+	return html5::getPreferredWindowResolution();
+#endif
+
 	if (getPreferredWindowMode() == EWindowMode::FULLSCREEN_BORDERLESS_WINDOWED)
 	{
 		SDL_Rect bounds;
 		if (SDL_GetDisplayBounds(getPreferredDisplayIndex(), &bounds) == 0)
 			return Point(bounds.w, bounds.h);
 	}
-#endif
 
 	const JsonNode & video = settings["video"];
 	int width = video["resolution"]["width"].Integer();

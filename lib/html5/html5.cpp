@@ -165,5 +165,17 @@ bool html5::isMobile() {
 #endif
 }
 
+#ifdef EMSCRIPTEN
+Point html5::getPreferredWindowResolution() {
+    auto width = EM_ASM_INT((
+        return Module.getWidth();
+    ));
+    auto height = EM_ASM_INT((
+        return Module.getHeight();
+    ));
+    return Point(width, height);
+}
+#endif
+
 
 VCMI_LIB_NAMESPACE_END
