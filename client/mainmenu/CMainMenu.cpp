@@ -59,6 +59,10 @@
 #include "../../lib/GameConstants.h"
 #include "../../lib/CRandomGenerator.h"
 
+#ifdef VCMI_EMSCRIPTEN
+#include <emscripten.h>
+#endif
+
 std::shared_ptr<CMainMenu> CMM;
 ISelectionScreenInfo * SEL = nullptr;
 
@@ -205,7 +209,15 @@ static std::function<void()> genCommand(CMenuScreen * menu, std::vector<std::str
 			break;
 			case 4: //exit
 			{
-				return []() { CInfoWindow::showYesNoDialog(CGI->generaltexth->allTexts[69], std::vector<std::shared_ptr<CComponent>>(), do_quit, 0, PlayerColor(1)); };
+				return []() {
+#ifdef VCMI_EMSCRIPTEN
+					EM_ASM((
+						Module.mainMenuQuit();
+					));
+#else
+					CInfoWindow::showYesNoDialog(CGI->generaltexth->allTexts[69], std::vector<std::shared_ptr<CComponent>>(), do_quit, 0, PlayerColor(1));
+#endif
+				};
 			}
 			break;
 			case 5: //highscores
