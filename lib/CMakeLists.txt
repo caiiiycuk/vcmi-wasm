@@ -44,7 +44,6 @@ set(lib_SRCS
 if(ENABLE_HTML5_BUILD)
 	list(APPEND lib_SRCS
 		"html5/html5.cpp"
-		"html5/network/LoopNetwork.cpp"
 	)
 endif()
 
