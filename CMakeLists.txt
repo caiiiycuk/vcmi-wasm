@@ -180,10 +180,10 @@ if(EMSCRIPTEN)
 			"html5/vcmi.data" --no-node --from-emcc
 			--preload "${CMAKE_CURRENT_LIST_DIR}/config@config"
 			--preload "${CMAKE_CURRENT_LIST_DIR}/Mods@Mods"
-			--preload ~/vcmi/data/DEMO/Maps@/Maps
+			--preload ~/vcmi/data/DEMO/Maps-en@/Maps
   			--preload ~/vcmi/data/DEMO/Mods@/Mods
-			--preload ~/vcmi/data/DEMO/modSettings.json@/home/web_user/.config/vcmi/modSettings.json
-			--preload ~/vcmi/data/DEMO/demo-lod-ru@Data
+			--preload ~/vcmi/data/DEMO/modSettings-en.json@/home/web_user/.config/vcmi/modSettings.json
+			--preload ~/vcmi/data/DEMO/demo-lod-en@Data
 			--preload "${CMAKE_CURRENT_LIST_DIR}/data/Mp3_empty@Mp3"
 			--js-output="html5/vcmi.data.js"
 		COMMAND "cp" "bin/vcmiclient*" "html5/")
