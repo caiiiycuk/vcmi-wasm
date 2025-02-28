@@ -37,6 +37,9 @@ private:
 	void buttonScenarioClick();
 	void buttonResetClick();
 	void buttonExitClick();
+#ifdef VCMI_EMSCRIPTEN
+	void loadHighscores(bool isChampaign);
+#endif
 
 	void showPopupWindow(const Point & cursorPosition) override;
 	void showAll(Canvas & to) override;
