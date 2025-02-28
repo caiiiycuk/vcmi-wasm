@@ -37,6 +37,42 @@
 #include "../../lib/gameState/HighScore.h"
 #include "../../lib/gameState/GameStatistics.h"
 
+#ifdef VCMI_EMSCRIPTEN
+#include "json/JsonParser.h"
+#include <emscripten.h>
+#include <boost/uuid/detail/md5.hpp>
+std::string digest_to_string( unsigned char (&v)[16] )
+{
+    std::string r;
+
+    for( std::size_t i = 0; i < 16; ++i )
+    {
+        char buffer[ 8 ];
+        boost::core::snprintf( buffer, sizeof( buffer ), "%02x", static_cast<int>( v[ i ] ) );
+
+        r += buffer;
+    }
+
+    return r;
+}
+std::string digest( char const * s )
+{
+    boost::uuids::detail::md5 hash;
+    hash.process_bytes( s, std::strlen( s ) );
+
+    typename boost::uuids::detail::md5::digest_type result;
+    hash.get_digest( result );
+
+    return digest_to_string( result );
+}
+std::function<void(char*)> onload;
+extern "C" void EMSCRIPTEN_KEEPALIVE onHighscores(char* json) {
+	if (onload) {
+		onload(json);
+	}
+}
+#endif
+
 CHighScoreScreen::CHighScoreScreen(HighScorePage highscorepage, int highlighted)
 	: CWindowObject(BORDERED), highscorepage(highscorepage), highlighted(highlighted)
 {
@@ -47,8 +83,12 @@ CHighScoreScreen::CHighScoreScreen(HighScorePage highscorepage, int highlighted)
 
 	backgroundAroundMenu = std::make_shared<CFilledTexture>(ImagePath::builtin("DIBOXBCK"), Rect(-pos.x, -pos.y, GH.screenDimensions().x, GH.screenDimensions().y));
 
+#ifdef VCMI_EMSCRIPTEN
+	loadHighscores(highscorepage == CAMPAIGN);
+#else
 	addHighScores();
 	addButtons();
+#endif
 }
 
 void CHighScoreScreen::showPopupWindow(const Point & cursorPosition)
@@ -134,21 +174,47 @@ void CHighScoreScreen::addHighScores()
 	}
 }
 
+#ifdef EMSCRIPTEN
+void CHighScoreScreen::loadHighscores(bool isCampaign) {
+	onload = [this, isCampaign](char* json) {
+		if (json) {
+			Settings s = persistentStorage.write["highscore"][isCampaign ? "campaign" : "scenario"];
+			JsonParser parser((std::byte*) json, strlen(json), JsonParsingSettings());
+			JsonNode hs = parser.parse("remote.hs");
+			s->Vector() = hs.Vector();
+		}
+		addHighScores();
+		addButtons();
+		redraw();
+	};
+	EM_ASM((
+		Module.loadHighscores($0, Module._onHighscores);
+	), isCampaign);
+}
+#endif
 void CHighScoreScreen::buttonCampaignClick()
 {
 	highscorepage = HighScorePage::CAMPAIGN;
+#ifdef VCMI_EMSCRIPTEN
+	loadHighscores(true);
+#else
 	addHighScores();
 	addButtons();
 	redraw();
+#endif
 }
 
 void CHighScoreScreen::buttonScenarioClick()
 {
 	OBJECT_CONSTRUCTION;
 	highscorepage = HighScorePage::SCENARIO;
+#ifdef VCMI_EMSCRIPTEN
+	loadHighscores(false);
+#else
 	addHighScores();
 	addButtons();
 	redraw();
+#endif
 }
 
 void CHighScoreScreen::buttonResetClick()
@@ -247,7 +313,37 @@ int CHighScoreInputScreen::addEntry(std::string text) {
 	newNode["points"].Integer() = calc.calculate().cheater ? 0 : calc.calculate().total;
 	newNode["datetime"].String() = TextOperations::getFormattedDateTimeLocal(std::time(nullptr));
 	newNode["posFlag"].Bool() = true;
+#ifdef VCMI_EMSCRIPTEN
+	std::string passkey = std::string("") +
+		newNode["player"].String() +
+		std::to_string(newNode["days"].Integer()) +
+		std::to_string(newNode["points"].Integer()) +
+		newNode["datetime"].String().c_str();
+	passkey = digest(passkey.c_str());
 
+	EM_ASM((
+		Module.hsLock =
+			fetch("https://d5dn8hh4ivlobv6682ep.apigw.yandexcloud.net/vcmi/hs/push", {
+	            method: "POST",
+		        body: JSON.stringify({
+	            	isCampaing: $0,
+            		player: UTF8ToString($1),
+					map: UTF8ToString($2),
+			    	days: Number($3),
+		        	points: Number($4),
+	            	datetime: UTF8ToString($5),
+            		passkey: UTF8ToString($6)
+				}),
+			}).catch(console.error);
+	),
+	calc.isCampaign,
+	newNode["player"].String().c_str(),
+	(calc.isCampaign ? newNode["campaignName"].String() : newNode["scenarioName"].String()).c_str(),
+	newNode["days"].Integer(),
+	newNode["points"].Integer(),
+	newNode["datetime"].String().c_str(),
+	passkey.c_str());
+#endif
 	baseNode.push_back(newNode);
 	boost::range::sort(baseNode, sortFunctor);
 
@@ -294,7 +390,7 @@ void CHighScoreInputScreen::clickPressed(const Point & cursorPosition)
 			{
 				int pos = addEntry(text);
 				close();
-				GH.windows().createAndPushWindow<CHighScoreScreen>(calc.isCampaign ? CHighScoreScreen::HighScorePage::CAMPAIGN : CHighScoreScreen::HighScorePage::SCENARIO, pos);
+				GH.windows().createAndPushWindow<CHighScoreScreen>(calc.isCampaign ? CHighScoreScreen::HighScorePage::CAMPAIGN : CHighScoreScreen::HighScorePage::SCENARIO, -1);
 			}
 			else
 				stopMusicAndClose();
