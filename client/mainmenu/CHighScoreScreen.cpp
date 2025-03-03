@@ -41,6 +41,7 @@
 #include "json/JsonParser.h"
 #include <emscripten.h>
 #include <boost/uuid/detail/md5.hpp>
+#include "hs_secret.h"
 std::string digest_to_string( unsigned char (&v)[16] )
 {
     std::string r;
@@ -317,7 +318,7 @@ int CHighScoreInputScreen::addEntry(std::string text) {
 	newNode["datetime"].String() = TextOperations::getFormattedDateTimeLocal(std::time(nullptr));
 	newNode["posFlag"].Bool() = true;
 #ifdef VCMI_EMSCRIPTEN
-	std::string passkey = std::string("") +
+	std::string passkey = std::string(hs_secret) +
 		newNode["player"].String() +
 		std::to_string(newNode["days"].Integer()) +
 		std::to_string(newNode["points"].Integer()) +
