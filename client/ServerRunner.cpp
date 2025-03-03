@@ -68,9 +68,7 @@ void ServerThreadRunner::shutdown()
 
 void ServerThreadRunner::wait()
 {
-#ifndef VCMI_HTML5_BUILD
 	threadRunLocalServer.join();
-#endif
 }
 
 int ServerThreadRunner::exitCode()
