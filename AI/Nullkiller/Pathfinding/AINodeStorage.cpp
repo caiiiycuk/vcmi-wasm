@@ -599,7 +599,7 @@ bool AINodeStorage::calculateHeroChain()
 		int ourThread = tbb::this_task_arena::current_thread_index();
 		task.execute(r);
 		task.flushResult(results.at(ourThread));
-	});
+	}, true);
 
 	// FIXME: potentially non-deterministic behavior due to parallel_for
 	for (const auto & result : results)
