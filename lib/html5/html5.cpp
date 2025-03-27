@@ -142,10 +142,10 @@ bool html5::isPngImage(unsigned char *data, int length) {
 
 #ifdef EMSCRIPTEN
 EM_JS(bool, jsMainThread, (), {
-    return typeof importScripts === 'function';
+    return (typeof importScripts === 'function') ? 0 : 1;
 });
 EM_JS(bool, jsMobile, (), {
-    return typeof importScripts === 'function';
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 });
 #endif
 
