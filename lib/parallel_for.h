@@ -14,9 +14,21 @@ namespace vcmi {
     template<typename Value>
     using blocked_range = tbb::blocked_range<Value>;
     template<typename R, typename B>
-    void parallel_for(R r, B fn) {
+    void parallel_for(R r, B fn, bool must_use_tbb = false) {
+        bool mainThread = html5::isMainThread();
+        if (must_use_tbb) {
+            if (mainThread) {
+                printf("Must use tbb::, but we are in main thread\n");
+                abort();
+            }
+
+            tbb::parallel_for(tbb::blocked_range(r.begin(), r.end(),
+                std::max((r.end() - r.begin() / 4), r.grainsize())), fn);
+            return;
+        }
+
         static std::atomic_bool pool_used = false;
-        if (html5::isMainThread() || pool_used) {
+        if (mainThread || pool_used) {
             fn(r);
         } else {
             pool_used = true;
