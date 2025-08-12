@@ -135,7 +135,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         submodules: recursive
 
@@ -363,7 +363,7 @@ jobs:
       run:
         shell: bash
     steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v5
           with:
             submodules: recursive
 
@@ -393,7 +393,7 @@ jobs:
       run:
         shell: bash
     steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v5
 
         - name: Ensure LF line endings
           run: |
