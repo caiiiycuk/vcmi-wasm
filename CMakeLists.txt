@@ -157,7 +157,7 @@ if(EMSCRIPTEN)
 		"-fwasm-exceptions"
 		"-sMALLOC=mimalloc"
 		"${RELEASE_OPT}"
-		"--emit-symbols-map"
+		"--emit-symbol-map"
 		# for debugging
 		# "-O1"
 		# "--profiling-funcs"
