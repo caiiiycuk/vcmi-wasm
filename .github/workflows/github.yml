@@ -298,7 +298,7 @@ jobs:
 
     - name: Artifacts
       if: ${{ matrix.pack == 1 }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ env.VCMI_PACKAGE_FILE_NAME }} - ${{ matrix.platform }}
         compression-level: 0
@@ -319,7 +319,7 @@ jobs:
 
     - name: Upload android apk artifacts
       if: ${{ startsWith(matrix.platform, 'android') }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ env.VCMI_PACKAGE_FILE_NAME }} - ${{ matrix.platform }}
         compression-level: 0
@@ -328,7 +328,7 @@ jobs:
 
     - name: Upload Android aab artifacts
       if: ${{ startsWith(matrix.platform, 'android') && github.ref == 'refs/heads/master' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ env.VCMI_PACKAGE_FILE_NAME }} - ${{ matrix.platform }} - aab
         compression-level: 0
@@ -337,7 +337,7 @@ jobs:
 
     - name: Upload debug symbols
       if: ${{ startsWith(matrix.platform, 'msvc') }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ env.VCMI_PACKAGE_FILE_NAME }} - ${{ matrix.platform }} - symbols
         compression-level: 9
@@ -380,7 +380,7 @@ jobs:
             gzip release.tar
             
         - name: Upload source code archive
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v5
           with:
             name: ${{ env.VCMI_PACKAGE_FILE_NAME }}
             path: |
