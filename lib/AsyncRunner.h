@@ -12,12 +12,20 @@
 #include <tbb/task_arena.h>
 #include <tbb/task_group.h>
 
+#ifdef VCMI_HTML5_BUILD
+#include <html5/html5.h>
+#endif
+
 VCMI_LIB_NAMESPACE_BEGIN
 
 /// Helper class for running asynchronous tasks using TBB thread pool
 class AsyncRunner : boost::noncopyable
 {
+#ifdef VCMI_HTML5_BUILD
+	tbb::task_arena arena = 4;
+#else
 	tbb::task_arena arena;
+#endif
 	tbb::task_group taskGroup;
 
 public:
@@ -25,6 +33,12 @@ public:
 	template<typename Functor>
 	void run(Functor && f)
 	{
+#ifdef VCMI_HTML5_BUILD
+		if (html5::isMainThread()) {
+			f();
+			return;
+		}
+#endif
 		arena.enqueue(taskGroup.defer(std::forward<Functor>(f)));
 	}
 
