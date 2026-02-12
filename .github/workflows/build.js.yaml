@@ -42,11 +42,13 @@ jobs:
     - name: build libraries
       run: |
         source ./emsdk/emsdk_env.sh
+        cd emscripten
         ninja boost-lib tbb-lib minizip-ng-lib squish-lib
 
     - name: build vcmi
       run: |
-        source ./emsdk/emsdk_env.sh    
+        source ./emsdk/emsdk_env.sh
+        cd emscripten
         ninja html5
 
     - name: zip
