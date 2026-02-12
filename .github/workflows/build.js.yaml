@@ -16,31 +16,37 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-
     - name: build tools
-    - run: sudo apt-get -yqq update
-    - run: sudo apt-get install -yq --no-install-recommends cmake ninja-build zip
-
+      run: |
+        sudo apt-get -yqq update
+        sudo apt-get install -yq --no-install-recommends cmake ninja-build zip
+    
     - name: emsdk
-    - run: git clone https://github.com/emscripten-core/emsdk.git
-    - run: cd emsdk && ./emsdk install ${{ matrix.emsdk-version }} && ./emsdk activate ${{ matrix.emsdk-version }} && cd ..
-    - run: source ./emsdk/emsdk_env.sh
+      run: |
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk && ./emsdk install ${{ matrix.emsdk-version }} && ./emsdk activate ${{ matrix.emsdk-version }} && cd ..
+        source ./emsdk/emsdk_env.sh
 
     - name: configure
-    - run: mkdir emscripten && cd emscripten
-    - run: emcmake cmake -GNinja -DCMAKE_BUILD_TYPE=MinSizeRel ..
+      run: |
+        mkdir emscripten && cd emscripten
+        emcmake cmake -GNinja -DCMAKE_BUILD_TYPE=MinSizeRel ..
 
     - name: build ports
-    - run: embuilder build sdl2 sdl2_ttf sdl2_image sdl2_mixer
+      run: |
+        embuilder build sdl2 sdl2_ttf sdl2_image sdl2_mixer
 
     - name: build libraries
-    - run: ninja boost-lib tbb-lib minizip-ng-lib squish-lib
+      run: |
+        ninja boost-lib tbb-lib minizip-ng-lib squish-lib
 
     - name: build vcmi
-    - run: ninja html5
+      run: |
+        ninja html5
 
     - name: zip
-    - run: zip -9r release.zip emscripten/html5/*
+      run: |
+        zip -9r release.zip emscripten/html5/*
 
     - name: upload
       uses: actions/upload-artifact@v4.0.0
