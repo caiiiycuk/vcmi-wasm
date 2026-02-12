@@ -27,23 +27,26 @@ jobs:
       run: |
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk && ./emsdk install ${{ matrix.emsdk-version }} && ./emsdk activate ${{ matrix.emsdk-version }} && cd ..
-        source ./emsdk/emsdk_env.sh
 
     - name: configure
       run: |
+        source ./emsdk/emsdk_env.sh
         mkdir emscripten && cd emscripten
         emcmake cmake -GNinja -DCMAKE_BUILD_TYPE=MinSizeRel ..
 
     - name: build ports
       run: |
+        source ./emsdk/emsdk_env.sh
         embuilder build sdl2 sdl2_ttf sdl2_image sdl2_mixer
 
     - name: build libraries
       run: |
+        source ./emsdk/emsdk_env.sh
         ninja boost-lib tbb-lib minizip-ng-lib squish-lib
 
     - name: build vcmi
       run: |
+        source ./emsdk/emsdk_env.sh    
         ninja html5
 
     - name: zip
