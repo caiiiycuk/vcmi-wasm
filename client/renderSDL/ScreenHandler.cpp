@@ -39,6 +39,10 @@
 #	include "ios/utils.h"
 #endif
 
+#ifdef VCMI_HTML5_BUILD
+#include "../lib/html5/html5.h"
+#endif
+
 #include <SDL.h>
 
 // TODO: should be made into a private members of ScreenHandler
@@ -108,6 +112,13 @@ int ScreenHandler::getInterfaceScalingPercentage() const
 		// for PC - avoid downscaling if possible
 		int preferredMinimalScaling = 100;
 #endif
+
+#ifdef VCMI_HTML5_BUILD
+		if (html5::isMobile()) {
+			preferredMinimalScaling = 100;
+		}
+#endif
+
 		// prefer a little below maximum - to give space for extended UI
 		int preferredMaximalScaling = maximalScaling * 10 / 12;
 		userScaling = std::max(std::min(maximalScaling, preferredMinimalScaling), preferredMaximalScaling);
@@ -160,6 +171,10 @@ Point ScreenHandler::getRenderResolution() const
 
 Point ScreenHandler::getPreferredWindowResolution() const
 {
+#if EMSCRIPTEN
+	return html5::getPreferredWindowResolution();
+#endif
+
 	if (getPreferredWindowMode() == EWindowMode::FULLSCREEN_BORDERLESS_WINDOWED)
 	{
 		SDL_Rect bounds;
@@ -193,7 +208,9 @@ int ScreenHandler::getPreferredDisplayIndex() const
 
 EWindowMode ScreenHandler::getPreferredWindowMode() const
 {
-#ifdef VCMI_MOBILE
+#ifdef VCMI_HTML5_BUILD
+	return EWindowMode::WINDOWED;
+#elif VCMI_MOBILE
 	// On Android / ios game will always render to screen size
 	return EWindowMode::FULLSCREEN_BORDERLESS_WINDOWED;
 #else
@@ -275,7 +292,7 @@ void ScreenHandler::recreateWindowAndScreenBuffers()
 
 void ScreenHandler::updateWindowState()
 {
-#ifndef VCMI_MOBILE
+#if !defined(VCMI_MOBILE) && !defined(VCMI_HTML5_BUILD)
 	int displayIndex = getPreferredDisplayIndex();
 
 	switch(getPreferredWindowMode())
@@ -453,6 +470,10 @@ SDL_Window * ScreenHandler::createWindowImpl(Point dimensions, int flags, bool c
 
 SDL_Window * ScreenHandler::createWindow()
 {
+#ifdef VCMI_EMSCRIPTEN
+	return createWindowImpl(getPreferredWindowResolution(), SDL_WINDOW_OPENGL, true);
+#endif
+
 #ifndef VCMI_MOBILE
 	Point dimensions = getPreferredWindowResolution();
 
@@ -525,6 +546,7 @@ void ScreenHandler::validateSettings()
 		}
 	}
 
+#ifndef VCMI_EMSCRIPTEN
 	if (getPreferredWindowMode() == EWindowMode::WINDOWED)
 	{
 		//we only check that our desired window size fits on screen
@@ -543,6 +565,7 @@ void ScreenHandler::validateSettings()
 			}
 		}
 	}
+#endif
 
 	if (getPreferredWindowMode() == EWindowMode::FULLSCREEN_EXCLUSIVE)
 	{

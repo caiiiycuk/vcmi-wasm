@@ -39,6 +39,7 @@
 
 /*********************** TBB.h ********************/
 
+#include "../../lib/parallel_for.h"
 #include "../../lib/GameLibrary.h"
 #include "../../lib/CCreatureHandler.h"
 #include "../../lib/spells/CSpellHandler.h"

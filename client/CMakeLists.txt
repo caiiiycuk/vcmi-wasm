@@ -517,9 +517,13 @@ endif()
 
 target_link_libraries(vcmiclientcommon PRIVATE vcmiservercommon)
 
-target_link_libraries(vcmiclientcommon PUBLIC
-		vcmi SDL2::SDL2 SDL2::Image SDL2::Mixer SDL2::TTF libsquish::libsquish
-)
+if(NOT EMSCRIPTEN)
+    target_link_libraries(vcmiclientcommon PUBLIC
+            vcmi SDL2::SDL2 SDL2::Image SDL2::Mixer SDL2::TTF libsquish::libsquish
+    )
+else()
+	target_link_libraries(vcmiclientcommon PRIVATE ${emclient_LIBS})
+endif()
 
 if(ENABLE_VIDEO)
 	target_compile_definitions(vcmiclientcommon PRIVATE ENABLE_VIDEO)

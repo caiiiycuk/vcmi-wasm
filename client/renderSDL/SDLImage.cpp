@@ -23,7 +23,12 @@
 #include "../../lib/AsyncRunner.h"
 #include "../../lib/CConfigHandler.h"
 
+#ifdef VCMI_HTML5_BUILD
+#include "html5/html5.h"
+#endif
+
 #include <tbb/parallel_for.h>
+#include <tbb/task_arena.h>
 
 #include <SDL_image.h>
 #include <SDL_surface.h>

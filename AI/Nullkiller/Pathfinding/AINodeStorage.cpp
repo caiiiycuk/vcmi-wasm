@@ -125,7 +125,7 @@ void AINodeStorage::initialize(const PathfinderOptions & options, const IGameInf
 
 	//Each thread gets different x, but an array of y located next to each other in memory
 
-	tbb::parallel_for(tbb::blocked_range<size_t>(0, sizes.x), [&](const tbb::blocked_range<size_t>& r)
+	vcmi::parallel_for(vcmi::blocked_range<size_t>(0, sizes.x), [&](const vcmi::blocked_range<size_t>& r)
 	{
 		int3 pos;
 
@@ -500,7 +500,7 @@ public:
 		newChains.reserve(storage.getBucketCount() * storage.getBucketSize());
 	}
 
-	void execute(const tbb::blocked_range<size_t>& r)
+	void execute(const vcmi::blocked_range<size_t>& r)
 	{
 		std::random_device randomDevice;
 		std::mt19937 randomEngine(randomDevice());
@@ -592,14 +592,14 @@ bool AINodeStorage::calculateHeroChain()
 
 	logAi->trace("Caculating hero chain for %d items", data.size());
 
-	tbb::parallel_for(tbb::blocked_range<size_t>(0, data.size()), [&](const tbb::blocked_range<size_t>& r)
+	vcmi::parallel_for(vcmi::blocked_range<size_t>(0, data.size()), [&](const vcmi::blocked_range<size_t>& r)
 	{
 		HeroChainCalculationTask task(*this, data, chainMask, heroChainTurn);
 
 		int ourThread = tbb::this_task_arena::current_thread_index();
 		task.execute(r);
 		task.flushResult(results.at(ourThread));
-	});
+	}, true);
 
 	// FIXME: potentially non-deterministic behavior due to parallel_for
 	for (const auto & result : results)
@@ -1250,7 +1250,7 @@ void AINodeStorage::calculateTownPortalTeleportations(std::vector<CGPathNode *> 
 #if 0
 	if (actorsVector.size() * initialNodes.size() > 1000)
 	{
-		tbb::parallel_for(tbb::blocked_range<size_t>(0, actorsVector.size()), [&](const tbb::blocked_range<size_t> & r)
+		vcmi::parallel_for(vcmi::blocked_range<size_t>(0, actorsVector.size()), [&](const vcmi::blocked_range<size_t> & r)
 			{
 				for(int i = r.begin(); i != r.end(); i++)
 				{

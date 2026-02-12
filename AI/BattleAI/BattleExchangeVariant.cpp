@@ -428,7 +428,7 @@ MoveTarget BattleExchangeEvaluator::findMoveTowardsUnreachable(
 							auto defenderToBypass = hb->battleGetUnitByPos(enemyHex);
 							assert(defenderToBypass != nullptr);
 							auto attackHex = dists.predecessors[enemyHex.toInt()];
-							
+
 							if(defenderToBypass &&
 							   defenderToBypass != enemy &&
 							   vstd::contains(defenderToBypass->getAttackableHexes(activeStack), attackHex))
@@ -436,7 +436,7 @@ MoveTarget BattleExchangeEvaluator::findMoveTowardsUnreachable(
 #if BATTLE_TRACE_LEVEL >= 1
 								logAi->trace("Found target to bypass at %d", enemyHex.toInt());
 #endif
-								
+
 								auto baiBypass = BattleAttackInfo(activeStack, defenderToBypass, 0, cb->battleCanShoot(activeStack));
 								auto attackBypass = AttackPossibility::evaluate(baiBypass, attackHex, damageCache, hb);
 

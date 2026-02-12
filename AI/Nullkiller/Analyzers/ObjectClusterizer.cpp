@@ -333,9 +333,9 @@ void ObjectClusterizer::clusterize()
 	}
 
 #if NKAI_TRACE_LEVEL == 0
-	tbb::parallel_for(tbb::blocked_range<size_t>(0, objs.size()), [&](const tbb::blocked_range<size_t> & r) {
+	vcmi::parallel_for(vcmi::blocked_range<size_t>(0, objs.size()), [&](const vcmi::blocked_range<size_t> & r) {
 #else
-	tbb::blocked_range<size_t> r(0, objs.size());
+	vcmi::blocked_range<size_t> r(0, objs.size());
 #endif
 		auto priorityEvaluator = ai->priorityEvaluators->acquire();
 		auto heroes = ai->cb->getHeroesInfo();

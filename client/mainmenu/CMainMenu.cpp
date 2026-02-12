@@ -60,6 +60,10 @@
 #include "../../lib/GameLibrary.h"
 #include "../../lib/json/JsonUtils.h"
 
+#ifdef VCMI_EMSCRIPTEN
+#include <emscripten.h>
+#endif
+
 #include <boost/lexical_cast.hpp>
 
 ISelectionScreenInfo * SEL = nullptr;
@@ -204,7 +208,15 @@ static std::function<void()> genCommand(CMenuScreen * menu, std::vector<std::str
 			break;
 			case 4: //exit
 			{
-				return []() { CInfoWindow::showYesNoDialog(LIBRARY->generaltexth->allTexts[69], std::vector<std::shared_ptr<CComponent>>(), [](){GAME->onShutdownRequested(false);}, 0, PlayerColor(1)); };
+				return []() {
+#ifdef VCMI_EMSCRIPTEN
+				    EM_ASM((
+                        Module.mainMenuQuit();
+                    ));
+#else
+				    CInfoWindow::showYesNoDialog(LIBRARY->generaltexth->allTexts[69], std::vector<std::shared_ptr<CComponent>>(), [](){GAME->onShutdownRequested(false);}, 0, PlayerColor(1));
+#endif
+				};
 			}
 			break;
 			case 5: //highscores
@@ -229,7 +241,7 @@ std::shared_ptr<CButton> CMenuEntry::createButton(CMenuScreen * parent, const Js
 			help = LIBRARY->generaltexth->zelp[(size_t)button["help"].Float()];
 		if(button["help"].isString() && !button["help"].String().empty())
 			help = {"", LIBRARY->generaltexth->translate(button["help"].String())};
-	}	
+	}
 
 	Point point = adjustNegativeCoordinate(button["x"].Integer(), button["y"].Integer());
 	EShortcut shortcut = ENGINE->shortcuts().findShortcut(button["shortcut"].String());
@@ -498,7 +510,11 @@ void CMultiMode::hostTCP(EShortcut shortcut)
 {
 	auto savedScreenType = screenType;
 	close();
+#ifdef VCMI_EMSCRIPTEN
+	ENGINE->windows().createAndPushWindow<CMultiPlayers>(getPlayersNames(), savedScreenType, true, ELoadMode::SINGLE, shortcut);
+#else
 	ENGINE->windows().createAndPushWindow<CMultiPlayers>(getPlayersNames(), savedScreenType, true, ELoadMode::MULTI, shortcut);
+#endif
 }
 
 void CMultiMode::joinTCP(EShortcut shortcut)
@@ -718,7 +734,7 @@ CLoadingScreen::CLoadingScreen(ImagePath background)
 		const int posy = loadbarConfig["y"].Integer();
 		const int blockSize = loadbarConfig["size"].Integer();
 		const int blocksAmount = loadbarConfig["amount"].Integer();
-		for (int i = 0; i < blocksAmount; ++i) 
+		for (int i = 0; i < blocksAmount; ++i)
 		{
 			progressBlocks.push_back(std::make_shared<CAnimImage>(loadbarPath, i, 0, posx + i * blockSize, posy));
 			progressBlocks.back()->deactivate();
