@@ -64,7 +64,11 @@ if(CMAKE_SYSTEM_NAME MATCHES FreeBSD OR HAIKU)
 	set(vcmiservercommon_LIBS execinfo ${vcmiservercommon_LIBS})
 endif()
 
-target_link_libraries(vcmiservercommon PRIVATE ${vcmiservercommon_LIBS} minizip::minizip)
+if (EMSCRIPTEN)
+	target_link_libraries(vcmiservercommon PRIVATE ${vcmiservercommon_LIBS})
+else()
+	target_link_libraries(vcmiservercommon PRIVATE ${vcmiservercommon_LIBS} minizip::minizip)
+endif()
 
 target_include_directories(vcmiservercommon
 	PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}

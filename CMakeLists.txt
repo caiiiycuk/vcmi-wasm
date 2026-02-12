@@ -124,11 +124,43 @@ if(EMSCRIPTEN)
 			BUILD_COMMAND "${CMAKE_MAKE_PROGRAM}" "tbb" "tbbmalloc"
 			INSTALL_COMMAND "${CMAKE_MAKE_PROGRAM}" "install" "tbb" "tbbmalloc"
 	)
+	ExternalProject_Add(minizip-ng-lib
+			PREFIX "minizip-ng"
+			URL "https://github.com/zlib-ng/minizip-ng/archive/refs/tags/4.1.0.zip"
+			BUILD_IN_SOURCE true
+			CONFIGURE_COMMAND "emcmake"
+			"${CMAKE_COMMAND}"
+			"-G${CMAKE_GENERATOR}"
+			"-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/minizip-ng"
+			"-DBUILD_SHARED_LIBS=false"
+			"-DCMAKE_BUILD_TYPE=MinSizeRel"
+			"-DCMAKE_CXX_FLAGS=-sUSE_ZLIB=1"
+			"-DLINK_FLAGS=-sUSE_ZLIB=1"
+			BUILD_COMMAND "${CMAKE_MAKE_PROGRAM}" "minizip"
+			INSTALL_COMMAND "${CMAKE_MAKE_PROGRAM}" "install" "minizip"
+	)
+	ExternalProject_Add(squish-lib
+			PREFIX "squish"
+			URL "https://github.com/svn2github/libsquish/archive/refs/heads/master.zip"
+			BUILD_IN_SOURCE true
+			CONFIGURE_COMMAND "emcmake"
+			"${CMAKE_COMMAND}"
+			"-G${CMAKE_GENERATOR}"
+			"-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/squish"
+			"-DBUILD_SHARED_LIBS=false"
+			"-DBUILD_SQUISH_WITH_SSE2=false"
+			"-DCMAKE_BUILD_TYPE=MinSizeRel"
+			BUILD_COMMAND "${CMAKE_MAKE_PROGRAM}" "squish"
+			INSTALL_COMMAND "${CMAKE_MAKE_PROGRAM}" "install" "squish"
+	)
 
-	set(emclient_LIBS boost_thread boost_system boost_program_options boost_locale boost_filesystem boost_date_time boost_atomic boost_chrono tbb tbbmalloc)
+	set(emclient_LIBS boost_thread boost_system boost_program_options boost_locale boost_filesystem boost_date_time
+			boost_atomic boost_chrono tbb tbbmalloc minizip squish fuzzylite::fuzzylite)
 
 	link_directories("${CMAKE_BINARY_DIR}/boost/lib")
 	link_directories("${CMAKE_BINARY_DIR}/tbb/lib")
+	link_directories("${CMAKE_BINARY_DIR}/minizip-ng/lib")
+	link_directories("${CMAKE_BINARY_DIR}/squish-ng/lib")
 
 	set("RELEASE_OPT" "-Oz")
 	add_compile_options(
@@ -150,7 +182,8 @@ if(EMSCRIPTEN)
 		"-sMODULARIZE=1"
 		"-sINVOKE_RUN=0"
 		"-sEXPORTED_RUNTIME_METHODS=['addRunDependency', 'removeRunDependency', 'FS', \
-			'lengthBytesUTF8', 'stringToUTF8', 'UTF8ToString', 'callMain', 'run']"
+			'lengthBytesUTF8', 'stringToUTF8', 'UTF8ToString', 'callMain', 'run', \
+			'HEAPU8', 'HEAPU32', 'HEAPF32']"
 		"-sEXPORTED_FUNCTIONS=['_main', '_malloc', '_free']"
 		"-pthread"
 		"-fwasm-exceptions"
@@ -165,6 +198,8 @@ if(EMSCRIPTEN)
 	include_directories(
 		"${CMAKE_BINARY_DIR}/boost/include"
 		"${CMAKE_BINARY_DIR}/tbb/include"
+		"${CMAKE_BINARY_DIR}/minizip-ng/include"
+		"${CMAKE_BINARY_DIR}/squish/include"
 		"${CMAKE_CURRENT_LIST_DIR}/AI/FuzzyLite/fuzzylite"
 		"${CMAKE_CURRENT_LIST_DIR}/include"
 		"${CMAKE_CURRENT_LIST_DIR}/lib"

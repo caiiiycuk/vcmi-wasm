@@ -159,7 +159,11 @@ else()
 endif()
 
 target_include_directories(Nullkiller2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(Nullkiller2 PUBLIC vcmi fuzzylite::fuzzylite TBB::tbb)
+if (EMSCRIPTEN)
+	target_include_directories(Nullkiller2 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../FuzzyLite")
+else()
+	target_link_libraries(Nullkiller2 PUBLIC vcmi fuzzylite::fuzzylite TBB::tbb)
+endif()
 
 vcmi_set_output_dir(Nullkiller2 "AI")
 enable_pch(Nullkiller2)
