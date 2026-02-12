@@ -1,0 +1,57 @@
+name: build
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        emsdk-version: [4.0.23]
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: build tools
+    - run: sudo apt-get -yqq update
+    - run: sudo apt-get install -yq --no-install-recommends cmake ninja-build zip
+
+    - name: emsdk
+    - run: git clone https://github.com/emscripten-core/emsdk.git
+    - run: cd emsdk && ./emsdk install ${{ matrix.emsdk-version }} && ./emsdk activate ${{ matrix.emsdk-version }} && cd ..
+    - run: source ./emsdk/emsdk_env.sh
+
+    - name: configure
+    - run: mkdir emscripten && cd emscripten
+    - run: emcmake cmake -GNinja -DCMAKE_BUILD_TYPE=MinSizeRel ..
+
+    - name: build ports
+    - run: embuilder build sdl2 sdl2_ttf sdl2_image sdl2_mixer
+
+    - name: build libraries
+    - run: ninja boost-lib tbb-lib minizip-ng-lib squish-lib
+
+    - name: build vcmi
+    - run: ninja html5
+
+    - name: zip
+    - run: zip -9r release.zip emscripten/html5/*
+
+    - name: upload
+      uses: actions/upload-artifact@v4.0.0
+      with:
+        name: 'release'
+        path: 'emscripten/html5'
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        name: ${{ github.ref_name }}
+        files: |
+          ${{github.workspace}}/release.zip
