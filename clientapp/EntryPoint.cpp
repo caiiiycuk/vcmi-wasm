@@ -119,6 +119,31 @@ static void prog_help(const po::options_description &opts)
 	std::cout << opts;
 }
 
+#ifdef VCMI_HTML5_BUILD
+static void mainLoop() {
+	if (!ENGINE) {
+#ifndef VCMI_EMSCRIPTEN
+		usleep(400);
+#endif
+		return;
+	}
+
+	// skip this frame if we can't lock the mutex
+	// otherwise browser will hang in renderer thread
+	if (!ENGINE->interfaceMutex.try_lock()) {
+#ifdef VCMI_EMSCRIPTEN
+		return;
+#else
+		usleep(4000);
+		return;
+#endif
+	}
+	ENGINE->interfaceMutex.unlock();
+
+	ENGINE->mainLoop();
+}
+#endif
+
 #if defined(VCMI_WINDOWS) && !defined(__GNUC__) && defined(VCMI_WITH_DEBUG_CONSOLE)
 int wmain(int argc, wchar_t* argv[])
 #elif defined(VCMI_MOBILE)
@@ -381,6 +406,20 @@ int main(int argc, char * argv[])
 	setThreadName("MainGUI");
 #endif
 
+#ifdef VCMI_HTML5_BUILD
+#ifndef VCMI_EMSCRIPTEN
+	while(1) {
+		mainLoop();
+	}
+#else
+	EM_ASM((
+	if (Module.gameStarted) {
+		Module.gameStarted();
+	}
+	));
+	emscripten_set_main_loop(mainLoop, 0, true);
+#endif
+#else
 	try
 	{
 		if (ENGINE)
@@ -401,6 +440,7 @@ int main(int argc, char * argv[])
 		// no-op - just break out of main loop
 		logGlobal->info("Main loop termination requested");
 	}
+#endif
 
 	GAME->server().endNetwork();
 

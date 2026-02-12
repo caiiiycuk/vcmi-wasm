@@ -30,8 +30,10 @@ void FramerateManager::framerateDelay()
 
 	if(!vsyncEnabled && timeSpentBusy < targetFrameTime)
 	{
+#ifndef VCMI_HTML5_BUILD
 		// if FPS is higher than it should be, then wait some time
 		std::this_thread::sleep_for(targetFrameTime - timeSpentBusy);
+#endif
 	}
 
 	// compute actual timeElapsed taking into account actual sleep interval

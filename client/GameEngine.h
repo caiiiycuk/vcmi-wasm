@@ -119,7 +119,10 @@ public:
 
 	/// Performs main game loop till game shutdown
 	/// This method never returns, to abort main loop throw GameShutdownException
-	[[noreturn]] void mainLoop();
+#ifndef VCMI_HTML5_BUILD
+	[[noreturn]]
+#endif
+	void mainLoop();
 
 	/// called whenever SDL_WINDOWEVENT_RESTORED is reported or the user selects a different resolution, requiring to center/resize all windows
 	void onScreenResize(bool resolutionChanged, bool windowResized);

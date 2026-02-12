@@ -108,15 +108,22 @@ void GameEngine::fakeMouseMove()
 	});
 }
 
-[[noreturn]] void GameEngine::mainLoop()
+#ifndef VCMI_HTML5_BUILD
+[[noreturn]]
+#endif
+void GameEngine::mainLoop()
 {
+#ifndef VCMI_HTML5_BUILD
 	for (;;)
 	{
+#endif
 		input().fetchEvents();
 		updateFrame();
 		screenHandlerInstance->presentScreenTexture();
 		framerate().framerateDelay(); // holds a constant FPS
+#ifndef VCMI_HTML5_BUILD
 	}
+#endif
 }
 
 void GameEngine::updateFrame()
