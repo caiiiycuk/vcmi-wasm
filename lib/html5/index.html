@@ -45,6 +45,7 @@
     }
   </script>
   <script type="text/javascript">
+    const loadedMusic = {};
     const module = {
       locateFile: (path, prefix) => {
         if (path.endsWith('.wasm'))
@@ -85,7 +86,7 @@
         });
 
         module.canvas = document.getElementById("canvas");
-        
+
         let currentCanvasSize = { width: 0, height: 0 };
         const handleResize = () => {
           const dpi = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
@@ -107,6 +108,18 @@
         module.getWidth = () => currentCanvasSize.width;
         module.getHeight = () => currentCanvasSize.height;
         module.callMain(["--disable-video"]);
+      },
+      loadMusic: async (filePtr) => {
+        const file = module.UTF8ToString(filePtr).substring(1);
+        if (loadedMusic[file]) {
+          return;
+        }
+        loadedMusic[file] = true;
+        const url = "https://cdn.dos.zone/custom/vcmi/async" + file;
+        const music = await loadResource(url, "arraybuffer");
+        module.FS.unlink(file);
+        module.fsWrite(file, new Uint8Array(music));
+        module._playMusic();
       },
     };
 

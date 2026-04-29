@@ -37,9 +37,6 @@ private:
 	void buttonScenarioClick();
 	void buttonResetClick();
 	void buttonExitClick();
-#ifdef VCMI_EMSCRIPTEN
-	void loadHighscores(bool isChampaign);
-#endif
 
 	void rowEvent(std::function<void(int row, bool currentGameNotInListEntry)> func, const Point & cursorPosition);
 
