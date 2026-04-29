@@ -41,6 +41,9 @@
 #include "../lib/texts/CGeneralTextHandler.h"
 
 #include <SDL_render.h>
+#ifdef VCMI_EMSCRIPTEN
+#include <emscripten/emscripten.h>
+#endif
 
 std::unique_ptr<GameEngine> ENGINE;
 
@@ -305,3 +308,17 @@ void GameEngine::setEngineUser(IGameEngineUser * user)
 {
 	engineUser = user;
 }
+
+#ifdef VCMI_EMSCRIPTEN
+extern "C" void EMSCRIPTEN_KEEPALIVE vcmiOnCanvasResize()
+{
+	if(!ENGINE)
+		return;
+
+	ENGINE->dispatchMainThread([]()
+	{
+		if(ENGINE)
+			ENGINE->onScreenResize(true, true);
+	});
+}
+#endif

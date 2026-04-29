@@ -185,7 +185,7 @@ if(EMSCRIPTEN)
 		"-sEXPORTED_RUNTIME_METHODS=['addRunDependency', 'removeRunDependency', 'FS', 'OPFS', \
 			'lengthBytesUTF8', 'stringToUTF8', 'UTF8ToString', 'callMain', 'run', \
 			'HEAPU8', 'HEAPU32', 'HEAPF32']"
-		"-sEXPORTED_FUNCTIONS=['_main', '_malloc', '_free']"
+		"-sEXPORTED_FUNCTIONS=['_main', '_malloc', '_free', '_vcmiOnCanvasResize']"
 		"-pthread"
 		"-fwasm-exceptions"
 		"-sMALLOC=mimalloc"
@@ -194,9 +194,9 @@ if(EMSCRIPTEN)
 		"--js-library" "${CMAKE_CURRENT_LIST_DIR}/lib/html5/libopfs.js"
 		"-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$OPFS"
 		# for debugging
-		 "-O1"
-		 "--profiling-funcs"
-		 "-sASSERTIONS=2"
+		# "-O1"
+		# "--profiling-funcs"
+		# "-sASSERTIONS=2"
 	)
 	include_directories(
 		"${CMAKE_BINARY_DIR}/boost/include"

@@ -84,16 +84,28 @@
           });
         });
 
-        const dpi = Math.max(1, Math.min(devicePixelRatio, 2));
-        const width = Math.round(innerWidth * dpi);
-        const height = Math.round(innerHeight * dpi);
-
-        module.getWidth = () => width;
-        module.getHeight = () => height;
         module.canvas = document.getElementById("canvas");
+        
+        let currentCanvasSize = { width: 0, height: 0 };
+        const handleResize = () => {
+          const dpi = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+          const cssWidth = module.canvas.clientWidth || window.innerWidth;
+          const cssHeight = module.canvas.clientHeight || window.innerHeight;
+          currentCanvasSize = {
+            width: Math.max(1, Math.round(cssWidth * dpi)),
+            height: Math.max(1, Math.round(cssHeight * dpi)),
+          };
+          module._vcmiOnCanvasResize();
+        };
+
+        const canvasResizeObserver = new ResizeObserver(handleResize);
+        canvasResizeObserver.observe(module.canvas);
+        handleResize();
 
         document.getElementById("spinner").style.display = "none";
 
+        module.getWidth = () => currentCanvasSize.width;
+        module.getHeight = () => currentCanvasSize.height;
         module.callMain(["--disable-video"]);
       },
     };

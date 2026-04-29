@@ -514,6 +514,16 @@ SDL_Window * ScreenHandler::createWindow()
 
 bool ScreenHandler::onScreenResize(bool keepWindowResolution)
 {
+#ifdef VCMI_HTML5_BUILD
+	// In browser builds, DOM canvas resize does not always produce SDL size events.
+	// Force SDL window size from current JS-reported canvas size, then recreate buffers.
+	Point resolution = getPreferredWindowResolution();
+	SDL_SetWindowSize(mainWindow, resolution.x, resolution.y);
+	destroyScreenBuffers();
+	initializeScreenBuffers();
+	return true;
+#endif
+
 	if (keepWindowResolution)
 	{
 		// Only allowed in windowed mode
