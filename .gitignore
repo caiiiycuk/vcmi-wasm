@@ -6,6 +6,7 @@
 /launcher/vcmilauncher_automoc.cpp
 /conan-*
 /client/mainmenu/hs_secret.h
+/result
 
 build/
 .cache/*

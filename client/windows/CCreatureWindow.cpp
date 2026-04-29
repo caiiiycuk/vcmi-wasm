@@ -524,15 +524,20 @@ CStackWindow::CommanderMainSection::CommanderMainSection(CStackWindow * owner, i
 					{
 						parent->setSelection(skillID, icon);
 					};
-					for(int i = 0; i < bonuses.size(); i++) 
+					std::string abilityDescription;
+					for(size_t i = 0; i < bonuses.size(); i++)
 					{
-						icon->hoverText += stack->bonusToString(bonuses[i]);
+						if(!abilityDescription.empty())
+							abilityDescription += "\n";
+
+						abilityDescription += LIBRARY->bth->bonusToString(bonuses[i]);
 					}
+
+					icon->hoverText = abilityDescription;
+					icon->text = abilityDescription;
 
 					return icon;
 				}
-				if(skillID >= 100)
-					index--;
 			}
 			return nullptr;
 		};
@@ -597,7 +602,9 @@ CStackWindow::MainSection::MainSection(CStackWindow * owner, int yOffset, bool s
 		animation->setAmount(parent->info->creatureCount);
 	}
 
-	name = std::make_shared<CLabel>(215, 13, FONT_SMALL, ETextAlignment::CENTER, Colors::YELLOW, parent->info->getName());
+	name = std::make_shared<CLabel>(215, 13, FONT_SMALL, ETextAlignment::CENTER, Colors::YELLOW,
+		parent->info->getName() + (parent->info->commander && !parent->info->commander->alive ? (" {red|(" + LIBRARY->generaltexth->translate("vcmi.battleWindow.killed") + ")}") : "")
+	);
 
 	const CStack* battleStack = parent->info->stack;
 
@@ -823,10 +830,14 @@ CStackWindow::CStackWindow(const CCommanderInstance * commander, std::vector<ui3
 	init();
 }
 
-CStackWindow::~CStackWindow()
+CStackWindow::~CStackWindow() = default;
+
+void CStackWindow::close()
 {
 	if(info->levelupInfo && !info->levelupInfo->skills.empty())
 		info->levelupInfo->callback(vstd::find_pos(info->levelupInfo->skills, selectedSkill));
+
+	CWindowObject::close();
 }
 
 void CStackWindow::init()
@@ -857,9 +868,9 @@ void CStackWindow::init()
 
 void CStackWindow::initBonusesList()
 {
-	const IBonusBearer * bonusSource = (info->stack && !info->stack->base) 
-    ? static_cast<const IBonusBearer*>(info->stack)  // Use CStack for war machines
-    : static_cast<const IBonusBearer*>(info->stackNode);  // Use CStackInstance for regular units
+	const IBonusBearer * bonusSource = info->stack
+	? static_cast<const IBonusBearer*>(info->stack)  // Use CStack in battle
+	: static_cast<const IBonusBearer*>(info->stackNode);  // Use CStackInstance outside of battle
 
 	auto bonusToString = [bonusSource](const std::shared_ptr<Bonus> & bonus) -> std::string
 	{
@@ -869,7 +880,7 @@ void CStackWindow::initBonusesList()
 			return LIBRARY->getBth()->bonusToString(bonus, bonusSource);
 	};
 
-	BonusList receivedBonuses = *bonusSource->getBonuses(CSelector(Bonus::Permanent));
+	BonusList receivedBonuses = *bonusSource->getBonuses(Selector::all);
 	BonusList abilities = info->creature->getExportedBonusList();
 
 	// remove all bonuses that are not propagated away
@@ -926,7 +937,7 @@ void CStackWindow::initBonusesList()
 		groupIndepMin.remove_if([](const Bonus * b) { return b->valType != BonusValueType::INDEPENDENT_MIN; });
 		groupIndepMax.remove_if([](const Bonus * b) { return b->valType != BonusValueType::INDEPENDENT_MAX; });
 		groupNoMinMax.remove_if([](const Bonus * b) { return b->valType == BonusValueType::INDEPENDENT_MAX || b->valType == BonusValueType::INDEPENDENT_MIN; });
-		groupBaseOnly.remove_if([](const Bonus * b) { return b->valType != BonusValueType::ADDITIVE_VALUE || b->valType == BonusValueType::BASE_NUMBER; });
+		groupBaseOnly.remove_if([](const Bonus * b) { return b->valType != BonusValueType::ADDITIVE_VALUE && b->valType != BonusValueType::BASE_NUMBER; });
 
 		int valIndepMin = groupIndepMin.totalValue();
 		int valIndepMax = groupIndepMax.totalValue();

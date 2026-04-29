@@ -20,6 +20,7 @@ set(launcher_SRCS
 		settingsView/configeditordialog_moc.cpp
 		startGame/StartGameTab.cpp
 		firstLaunch/firstlaunch_moc.cpp
+		firstLaunch/progressoverlay.cpp
 		main.cpp
 		helper.cpp
 		innoextract.cpp
@@ -59,6 +60,7 @@ set(launcher_HEADERS
 		settingsView/csettingsview_moc.h
 		startGame/StartGameTab.h
 		firstLaunch/firstlaunch_moc.h
+		firstLaunch/progressoverlay.h
 		mainwindow_moc.h
 		languages.h
 		updatedialog_moc.h
@@ -91,7 +93,9 @@ set(launcher_TS
 	"${translationsDir}/bulgarian.ts"
 	"${translationsDir}/chinese.ts"
 	"${translationsDir}/czech.ts"
+	"${translationsDir}/dutch.ts"
 	"${translationsDir}/english.ts"
+	"${translationsDir}/filipino.ts"
 	"${translationsDir}/finnish.ts"
 	"${translationsDir}/french.ts"
 	"${translationsDir}/german.ts"
@@ -100,11 +104,13 @@ set(launcher_TS
 	"${translationsDir}/italian.ts"
 	"${translationsDir}/japanese.ts"
 	"${translationsDir}/korean.ts"
+	"${translationsDir}/latvian.ts"
 	"${translationsDir}/norwegian.ts"
 	"${translationsDir}/polish.ts"
 	"${translationsDir}/portuguese.ts"
 	"${translationsDir}/romanian.ts"
 	"${translationsDir}/russian.ts"
+	"${translationsDir}/serbian.ts"
 	"${translationsDir}/spanish.ts"
 	"${translationsDir}/swedish.ts"
 	"${translationsDir}/turkish.ts"
@@ -136,7 +142,11 @@ ${rccQmFiles}
 endif()
 
 if(WIN32)
-	set(launcher_ICON VCMI_launcher.rc)
+	set(VCMI_FILE_DESCRIPTION "VCMI Launcher")
+	set(VCMI_ORIGINAL_FILENAME "VCMI_launcher.exe")
+	set(VCMI_ICON_RESOURCE "IDI_ICON1 ICON \"${CMAKE_CURRENT_SOURCE_DIR}/VCMI_launcher.ico\"")
+	set(launcher_ICON "${CMAKE_CURRENT_BINARY_DIR}/VCMI_launcher_versioninfo.rc")
+	configure_file("${CMAKE_SOURCE_DIR}/win/WindowsFileInfo.rc.in" "${launcher_ICON}" @ONLY)
 endif()
 
 assign_source_group(${launcher_SRCS} ${launcher_HEADERS} ${launcher_RESOURCES} ${launcher_TS} ${launcher_ICON})
@@ -245,6 +255,10 @@ enable_pch(vcmilauncher)
 if(ENABLE_INNOEXTRACT)
 	target_compile_definitions(vcmilauncher PRIVATE ENABLE_INNOEXTRACT)
 	target_link_libraries(vcmilauncher innoextract)
+endif()
+
+if(ENABLE_DISCORD)
+	target_compile_definitions(vcmilauncher PRIVATE ENABLE_DISCORD)
 endif()
 
 if(IOS)

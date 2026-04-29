@@ -38,10 +38,11 @@ set(test_SRCS
 		game/CGameStateTest.cpp
 		game/HeroRecruitmentTest.cpp
 
+		json/JsonTests.cpp
+
 		map/CMapEditManagerTest.cpp
 		map/CMapFormatTest.cpp
 		map/MapComparer.cpp
-
 
 		netpacks/NetPackFixture.cpp
 
@@ -138,22 +139,6 @@ if(ENABLE_ERM)
 
 	list(APPEND test_HEADERS
 		erm/interpretter/ErmRunner.h
-	)
-endif()
-
-if(ENABLE_NULLKILLER2_AI)
-	# When not static, linking the library below is not enough, we need the .cpp files as well
-	file(GLOB_RECURSE NULLKILLER2_TEST_SRCS "../AI/Nullkiller2/*.cpp")
-	list(FILTER NULLKILLER2_TEST_SRCS EXCLUDE REGEX ".*main\\.cpp$")
-
-	list(APPEND test_SRCS
-		${NULLKILLER2_TEST_SRCS}
-		nullkiller2/Behaviors/RecruitHeroBehaviorTest.cpp
-		nullkiller2/Engine/ResourceTraderTest.cpp
-	)
-
-	list(APPEND test_HEADERS
-		nullkiller2/Nulkiller2TestUtils.h
 	)
 endif()
 

@@ -39,6 +39,7 @@
 #include "../lib/modding/ModDescription.h"
 #include "../lib/texts/MetaString.h"
 #include "../lib/GameLibrary.h"
+#include "../lib/ScopeGuard.h"
 #include "../lib/VCMIDirs.h"
 
 #include <boost/program_options.hpp>
@@ -420,58 +421,69 @@ int main(int argc, char * argv[])
 	emscripten_set_main_loop(mainLoop, 0, true);
 #endif
 #else
-	try
+	const auto & runMainLoop = []()
 	{
-		if (ENGINE)
+		try
 		{
-			checkForModLoadingFailure();
-			ENGINE->mainLoop();
-		}
-		else
-		{
-			while(!headlessQuit)
-				std::this_thread::sleep_for(std::chrono::milliseconds(200));
+			if (ENGINE)
+			{
+				checkForModLoadingFailure();
+				ENGINE->mainLoop();
+			}
+			else
+			{
+				while(!headlessQuit)
+					std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));
+			}
 		}
-	}
-	catch (const GameShutdownException & )
-	{
-		// no-op - just break out of main loop
-		logGlobal->info("Main loop termination requested");
-	}
+		catch (const GameShutdownException & )
+		{
+			// no-op - just break out of main loop
+			logGlobal->info("Main loop termination requested");
+		}
+	};
 #endif
 
-	GAME->server().endNetwork();
-
-	if(!settings["session"]["headless"].Bool())
+	const auto & cleanupEngine = [&logConfigurator]()
 	{
-		if(GAME->server().client)
-			GAME->server().endGameplay();
+		GAME->server().endNetwork();
 
-		if (ENGINE)
-			ENGINE->windows().clear();
-	}
+		if(!settings["session"]["headless"].Bool())
+		{
+			if(GAME->server().client)
+				GAME->server().endGameplay();
 
-	GAME.reset();
+			if (ENGINE)
+				ENGINE->windows().clear();
+		}
 
-	if(!settings["session"]["headless"].Bool())
-	{
-		CMessage::dispose();
-		delete graphics;
-		graphics = nullptr;
-	}
+		GAME.reset();
 
-	// must be executed before reset - since unique_ptr resets pointer to null before calling destructor
-	ENGINE->async().wait();
+		if(!settings["session"]["headless"].Bool())
+		{
+			CMessage::dispose();
+			delete graphics;
+			graphics = nullptr;
+		}
 
-	ENGINE.reset();
+		// must be executed before reset - since unique_ptr resets pointer to null before calling destructor
+		ENGINE->async().wait();
 
-	delete LIBRARY;
-	LIBRARY = nullptr;
-	logConfigurator.deconfigure();
+		ENGINE.reset();
 
-	std::cout << "Ending...\n";
+		delete LIBRARY;
+		LIBRARY = nullptr;
+		logConfigurator.deconfigure();
+
+		std::cout << "Ending...\n";
+	};
+
+	auto onExit = vstd::makeScopeGuard(cleanupEngine);
+#ifndef VCMI_HTML5_BUILD
+	runMainLoop();
+#endif
 	return 0;
 }
 

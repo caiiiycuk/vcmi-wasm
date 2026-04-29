@@ -192,7 +192,9 @@ set(editor_TS
 	"${translationsDir}/bulgarian.ts"
 	"${translationsDir}/chinese.ts"
 	"${translationsDir}/czech.ts"
+	"${translationsDir}/dutch.ts"
 	"${translationsDir}/english.ts"
+	"${translationsDir}/filipino.ts"
 	"${translationsDir}/finnish.ts"
 	"${translationsDir}/french.ts"
 	"${translationsDir}/german.ts"
@@ -201,11 +203,13 @@ set(editor_TS
 	"${translationsDir}/italian.ts"
 	"${translationsDir}/japanese.ts"
 	"${translationsDir}/korean.ts"
+	"${translationsDir}/latvian.ts"
 	"${translationsDir}/norwegian.ts"
 	"${translationsDir}/polish.ts"
 	"${translationsDir}/portuguese.ts"
 	"${translationsDir}/romanian.ts"
 	"${translationsDir}/russian.ts"
+	"${translationsDir}/serbian.ts"
 	"${translationsDir}/spanish.ts"
 	"${translationsDir}/swedish.ts"
 	"${translationsDir}/turkish.ts"
@@ -237,7 +241,11 @@ ${rccQmFiles}
 endif()
 
 if(WIN32)
-	set(editor_ICON mapeditor.rc)
+	set(VCMI_FILE_DESCRIPTION "VCMI Map Editor")
+	set(VCMI_ORIGINAL_FILENAME "VCMI_mapeditor.exe")
+	set(VCMI_ICON_RESOURCE "IDI_ICON1 ICON \"${CMAKE_CURRENT_SOURCE_DIR}/mapeditor.ico\"")
+	set(editor_ICON "${CMAKE_CURRENT_BINARY_DIR}/VCMI_mapeditor_versioninfo.rc")
+	configure_file("${CMAKE_SOURCE_DIR}/win/WindowsFileInfo.rc.in" "${editor_ICON}" @ONLY)
 endif()
 
 assign_source_group(${editor_SRCS} ${editor_HEADERS} ${editor_RESOURCES} ${editor_TS} ${editor_ICON})

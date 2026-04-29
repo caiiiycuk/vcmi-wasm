@@ -27,6 +27,7 @@ set(lib_SRCS
 	logging/VisualLogger.cpp
 
 	network/NetworkConnection.cpp
+	network/NetworkDiscovery.cpp
 	network/NetworkHandler.cpp
 	network/NetworkServer.cpp
 
@@ -77,6 +78,7 @@ set(lib_MAIN_SRCS
 	bonuses/BonusList.cpp
 	bonuses/BonusSelector.cpp
 	bonuses/BonusCustomTypes.cpp
+	bonuses/BonusParameters.cpp
 	bonuses/CBonusSystemNode.cpp
 	bonuses/IBonusBearer.cpp
 	bonuses/Limiters.cpp
@@ -242,6 +244,7 @@ set(lib_MAIN_SRCS
 	rmg/modificators/ConnectionsPlacer.cpp
 	rmg/modificators/WaterAdopter.cpp
 	rmg/modificators/MinePlacer.cpp
+	rmg/modificators/ObjectPlacer.cpp
 	rmg/modificators/TownPlacer.cpp
 	rmg/modificators/WaterProxy.cpp
 	rmg/modificators/WaterRoutes.cpp
@@ -327,6 +330,7 @@ set(lib_MAIN_SRCS
 	ResourceSet.cpp
 	RiverHandler.cpp
 	RoadHandler.cpp
+	MapLayerHandler.cpp
 	ScriptHandler.cpp
 	TerrainHandler.cpp
 	TurnTimerInfo.cpp
@@ -386,6 +390,7 @@ set(lib_HEADERS
 
 	network/NetworkConnection.h
 	network/NetworkDefines.h
+	network/NetworkDiscovery.h
 	network/NetworkHandler.h
 	network/NetworkInterface.h
 	network/NetworkServer.h
@@ -478,6 +483,7 @@ set(lib_MAIN_HEADERS
 	bonuses/BonusList.h
 	bonuses/BonusSelector.h
 	bonuses/BonusCustomTypes.h
+	bonuses/BonusParameters.h
 	bonuses/CBonusSystemNode.h
 	bonuses/IBonusBearer.h
 	bonuses/Limiters.h
@@ -618,6 +624,7 @@ set(lib_MAIN_HEADERS
 	mapping/CMapInfo.h
 	mapping/CMapOperation.h
 	mapping/CMapService.h
+	mapping/MapDifficulty.h
 	mapping/MapEditUtils.h
 	mapping/MapIdentifiersH3M.h
 	mapping/MapFeaturesH3M.h
@@ -625,6 +632,7 @@ set(lib_MAIN_HEADERS
 	mapping/MapFormat.h
 	mapping/MapFormatSettings.h
 	mapping/MapReaderH3M.h
+	mapping/MapTilesStorage.h
 	mapping/MapFormatJson.h
 	mapping/ObstacleProxy.h
 	mapping/TerrainTile.h
@@ -703,6 +711,7 @@ set(lib_MAIN_HEADERS
 	rmg/modificators/ConnectionsPlacer.h
 	rmg/modificators/WaterAdopter.h
 	rmg/modificators/MinePlacer.h
+	rmg/modificators/ObjectPlacer.h
 	rmg/modificators/TownPlacer.h
 	rmg/modificators/WaterProxy.h
 	rmg/modificators/WaterRoutes.h
@@ -811,6 +820,7 @@ set(lib_MAIN_HEADERS
 	ResourceSet.h
 	RiverHandler.h
 	RoadHandler.h
+	MapLayerHandler.h
 	ScriptHandler.h
 	ScopeGuard.h
 	StartInfo.h
@@ -882,6 +892,12 @@ target_include_directories(vcmi
 )
 
 if(WIN32)
+	set(VCMI_FILE_DESCRIPTION "VCMI Core Library")
+	set(VCMI_ORIGINAL_FILENAME "VCMI_lib.dll")
+	set(VCMI_ICON_RESOURCE "")
+	set(vcmi_ICON "${CMAKE_CURRENT_BINARY_DIR}/VCMI_lib_versioninfo.rc")
+	configure_file("${CMAKE_SOURCE_DIR}/win/WindowsFileInfo.rc.in" "${vcmi_ICON}" @ONLY)
+	target_sources(vcmi PRIVATE ${vcmi_ICON})
 	set_target_properties(vcmi
 		PROPERTIES
 			OUTPUT_NAME "VCMI_lib"
