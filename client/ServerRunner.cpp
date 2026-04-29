@@ -39,7 +39,7 @@ void ServerThreadRunner::start(bool listenForConnections, bool connectToLobby, s
 {
 	// cfgport may be 0 -- the real port is returned after calling prepare()
 	uint16_t port = settings["server"]["localPort"].Integer();
-	server = std::make_unique<CVCMIServer>(port, true);
+	server = std::make_shared<CVCMIServer>(port, true);
 	lobbyMode = connectToLobby;
 
 	if (startingInfo)
@@ -47,17 +47,23 @@ void ServerThreadRunner::start(bool listenForConnections, bool connectToLobby, s
 		server->si = startingInfo; //Else use default
 	}
 
-	std::promise<uint16_t> promise;
+	auto promise = std::make_shared<std::promise<uint16_t>>();
+	auto future = promise->get_future();
 
-	threadRunLocalServer = std::thread([this, connectToLobby, listenForConnections, &promise]{
+	threadRunLocalServer = std::thread([server = this->server, connectToLobby, listenForConnections, promise]{
 		setThreadName("runServer");
 		uint16_t port = server->prepare(connectToLobby, listenForConnections);
-		promise.set_value(port);
+		promise->set_value(port);
 		server->run();
 	});
 
+#ifdef VCMI_HTML5_BUILD
+	// Browser builds must not block the main thread on join().
+	threadRunLocalServer.detach();
+#endif
+
 	logNetwork->trace("Waiting for server port...");
-	serverPort = promise.get_future().get();
+	serverPort = future.get();
 	logNetwork->debug("Server port: %d", serverPort);
 }
 
@@ -68,7 +74,12 @@ void ServerThreadRunner::shutdown()
 
 void ServerThreadRunner::wait()
 {
+#ifdef VCMI_HTML5_BUILD
+	// The detached thread exits on its own after shutdown.
+	return;
+#else
 	threadRunLocalServer.join();
+#endif
 }
 
 int ServerThreadRunner::exitCode()

@@ -35,7 +35,7 @@ public:
 /// Class that runs server instance as a thread of client process
 class ServerThreadRunner final : public IServerRunner, boost::noncopyable
 {
-	std::unique_ptr<CVCMIServer> server;
+	std::shared_ptr<CVCMIServer> server;
 	std::thread threadRunLocalServer;
 	uint16_t serverPort = 0;
 	bool lobbyMode = false;
