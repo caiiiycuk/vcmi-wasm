@@ -178,10 +178,11 @@ if(EMSCRIPTEN)
 		"-sPTHREAD_POOL_SIZE=12"
 		"-sPTHREAD_POOL_SIZE_STRICT=0"
 		"-sFORCE_FILESYSTEM=1"
-		"-sEXPORT_NAME=VCMI"
+		"-sEXPORT_NAME=DOSVCMI"
+		"-sEXPORT_ES6=1"
 		"-sMODULARIZE=1"
 		"-sINVOKE_RUN=0"
-		"-sEXPORTED_RUNTIME_METHODS=['addRunDependency', 'removeRunDependency', 'FS', \
+		"-sEXPORTED_RUNTIME_METHODS=['addRunDependency', 'removeRunDependency', 'FS', 'OPFS', \
 			'lengthBytesUTF8', 'stringToUTF8', 'UTF8ToString', 'callMain', 'run', \
 			'HEAPU8', 'HEAPU32', 'HEAPF32']"
 		"-sEXPORTED_FUNCTIONS=['_main', '_malloc', '_free']"
@@ -190,10 +191,12 @@ if(EMSCRIPTEN)
 		"-sMALLOC=mimalloc"
 		"${RELEASE_OPT}"
 		"--emit-symbol-map"
+		"--js-library" "${CMAKE_CURRENT_LIST_DIR}/lib/html5/libopfs.js"
+		"-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$OPFS"
 		# for debugging
-		# "-O1"
-		# "--profiling-funcs"
-		# "-sASSERTIONS=2"
+		 "-O1"
+		 "--profiling-funcs"
+		 "-sASSERTIONS=2"
 	)
 	include_directories(
 		"${CMAKE_BINARY_DIR}/boost/include"
@@ -206,17 +209,20 @@ if(EMSCRIPTEN)
 		"${CMAKE_CURRENT_LIST_DIR}"
 	)
 
-	# to get empty Mp3 folder do: truncate -s 0 ./Mp3_empty
 	add_custom_target(html5
 		COMMAND "rm" "-rf" "html5"
 		COMMAND "mkdir" "html5"
+		COMMAND "cp" "${CMAKE_CURRENT_LIST_DIR}/../vcmi-html5-launcher/emscripten-launcher/html5/*" "html5/"
+		COMMAND "cp" "bin/vcmiclient.js" "html5/vcmiclient.js"
+		COMMAND "cp" "bin/vcmiclient.js.symbols" "html5/vcmiclient.js.symbols"
+		COMMAND "cp" "bin/vcmiclient.wasm" "html5/vcmiclient.wasm"
+		COMMAND "cp" "${CMAKE_CURRENT_LIST_DIR}/lib/html5/index.html" "html5/game.html"
 		COMMAND python3 "${EMSCRIPTEN_ROOT_PATH}/tools/file_packager.py"
-			"html5/vcmi.data" --no-node --from-emcc
+			"html5/vcmiclient.data" --no-node --from-emcc
 			--preload "${CMAKE_CURRENT_LIST_DIR}/config@config"
 			--preload "${CMAKE_CURRENT_LIST_DIR}/Mods@Mods"
-			--preload "${CMAKE_CURRENT_LIST_DIR}/data/Mp3_empty@Mp3"
-			--js-output="html5/vcmi.data.js"
-		COMMAND "cp" "bin/vcmiclient*" "html5/")
+			--js-output="html5/vcmiclient.data.js"
+	)
 	add_dependencies(html5 vcmiclient)
 endif()
 

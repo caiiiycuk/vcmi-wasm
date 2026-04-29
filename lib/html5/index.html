@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en-us">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+  <meta name="viewport" content="width=device-width, height=device-height, user-scalable=0" />
+
+  <title>DOS VCMI</title>
+  <style>
+    html,
+    body {
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      height: 100%
+    }
+
+    #canvas {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <figure style="overflow:visible;" id="spinner">
+    <center style="margin-top:1.5em; line-height:150%">
+      <img src="qtlogo.svg" width="320" height="200" style="display:block"></img>
+      <strong>DOS VCMI</strong>
+      <div id="status"></div>
+      <noscript>JavaScript is disabled. Please enable JavaScript to use this application.</noscript>
+    </center>
+  </figure>
+  <canvas id="canvas"></canvas>
+
+  <script type="text/javascript">
+    if (window.location.host === "test.js-dos.com") {
+      window.VCMI_WASM_URL = 'vcmiclient.wasm';
+      window.VCMI_DATA_URL = 'vcmiclient.data';
+    } else {
+      window.VCMI_WASM_URL = "https://br.cdn.dos.zone/vcmi/vcmiclient-v1/vcmiclient.wasm.br";
+      window.VCMI_DATA_URL = "https://br.cdn.dos.zone/vcmi/vcmiclient-v1/vcmiclient.data.br";
+    }
+  </script>
+  <script type="text/javascript">
+    const module = {
+      locateFile: (path, prefix) => {
+        if (path.endsWith('.wasm'))
+          return window.VCMI_WASM_URL;
+        if (path.endsWith('.data'))
+          return window.VCMI_DATA_URL;
+        return `${prefix || defaultBase}${path}`;
+      },
+      onRuntimeInitialized: async () => {
+        const FS = module.FS;
+        const OPFS = module.OPFS;
+
+        // cache directories
+        FS.mkdir("/home/web_user/.cache");
+        FS.mkdir("/home/web_user/.cache/vcmi");
+        // user directory
+        FS.mkdir("/home/web_user/.local");
+        FS.mkdir("/home/web_user/.local/share");
+        FS.mkdir("/home/web_user/.local/share/vcmi");
+        FS.mount(OPFS, {
+          autoPersist: false,
+          root: "/home/web_user/.local/share/vcmi",
+        }, "/home/web_user/.local/share/vcmi");
+
+        // config directory
+        FS.mkdir("/home/web_user/.config");
+        FS.mkdir("/home/web_user/.config/vcmi");
+        FS.mount(OPFS, {
+          autoPersist: true,
+          root: "/home/web_user/.config/vcmi",
+        }, "/home/web_user/.config/vcmi");
+
+
+        await new Promise(resolve => {
+          FS.syncfs(true, () => {
+            resolve();
+          });
+        });
+
+        const dpi = Math.max(1, Math.min(devicePixelRatio, 2));
+        const width = Math.round(innerWidth * dpi);
+        const height = Math.round(innerHeight * dpi);
+
+        module.getWidth = () => width;
+        module.getHeight = () => height;
+        module.canvas = document.getElementById("canvas");
+
+        document.getElementById("spinner").style.display = "none";
+
+        module.callMain(["--disable-video"]);
+      },
+    };
+
+    window.Module = module;
+  </script>
+  <script type="text/javascript" src="./vcmiclient.data.js"></script>
+  <script type="module">
+    import DOSVCMI from './vcmiclient.js';
+    DOSVCMI(window.Module);
+  </script>
+</body>
+
+</html>

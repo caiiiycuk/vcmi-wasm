@@ -37,5 +37,5 @@ The current cmake build supports only a Linux environment.
 Your build is now in the emscripten/html5 folder:
 
 * **vcmiclient.[js,wasm]** - the game itself
-* **vcmidata.[data,data.js]** - data files required by the game + vcmi-extras
+* **vcmiclient.[data,data.js]** - data files required by the game + vcmi-extras
 
