@@ -219,6 +219,7 @@ if(EMSCRIPTEN)
 		COMMAND "cp" "${CMAKE_CURRENT_LIST_DIR}/lib/html5/index.html" "html5/game.html"
 		COMMAND "cp" "${CMAKE_CURRENT_LIST_DIR}/lib/html5/mini-lz4.js" "html5/mini-lz4.js"
 		COMMAND "cp" "${CMAKE_CURRENT_LIST_DIR}/lib/html5/opfs-worker.js" "html5/opfs-worker.js"
+		COMMAND "cp" "${CMAKE_CURRENT_LIST_DIR}/lib/html5/dialogs.js" "html5/dialogs.js"
 		COMMAND "cp" "${CMAKE_CURRENT_LIST_DIR}/lib/html5/dosvcmi.png" "html5/"
 		COMMAND python3 "${EMSCRIPTEN_ROOT_PATH}/tools/file_packager.py"
 			"html5/vcmiclient.data" --no-node --from-emcc
