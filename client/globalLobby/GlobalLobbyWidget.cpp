@@ -47,7 +47,7 @@ GlobalLobbyWidget::GlobalLobbyWidget(GlobalLobbyWindow * window)
 	const JsonNode config(JsonPath::builtin(ENGINE->screenDimensions().x >= 1024 ? "config/widgets/lobbyWindowWide.json" : "config/widgets/lobbyWindow.json"));
 	build(config);
 
-#ifdef VCMI_HTML5_BUILD
+#ifdef VCMI_EMSCRIPTEN
 	widget<CButton>("createRoomButton")->block(true);
 #endif
 }
