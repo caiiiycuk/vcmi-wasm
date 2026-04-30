@@ -191,6 +191,7 @@
 		},
 		
 		{
+			"name": "createRoomButton",
 			"type": "button",
 			"position": {"x": 5, "y": 555},
 			"image": "lobbyCreateRoom",
