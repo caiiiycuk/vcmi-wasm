@@ -192,20 +192,7 @@
         module.getHeight = () => currentCanvasSize.height;
         module.callMain(["--disable-video"]);
       },
-      loadMusic: async (filePtr) => {
-        const file = module.UTF8ToString(filePtr).substring(1);
-        if (loadedMusic[file]) {
-          return;
-        }
-        loadedMusic[file] = true;
-        const url = "https://cdn.dos.zone/custom/vcmi/async" + file;
-        const music = await loadResource(url, "arraybuffer");
-        module.FS.unlink(file);
-        module.fsWrite(file, new Uint8Array(music));
-        module._playMusic();
-      },
       fsUpdate: async (filePtr, bufferPtr, length) => {
-        debugger;
         const toast = document.getElementById("save-toast");
         toast?.classList.remove("hidden", "opacity-0");
         try {

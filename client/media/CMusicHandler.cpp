@@ -294,16 +294,6 @@ void MusicEntry::load(const AudioPath & musicURI)
 
 	try
 	{
-#ifdef VCMI_EMSCRIPTEN
-		auto resourceName = CResourceHandler::get()->getResourceName(currentName);
-		if (resourceName.has_value() && boost::filesystem::file_size(resourceName.value()) == 0) {
-			MAIN_THREAD_EM_ASM((
-				Module.loadMusic($0);
-			), resourceName.value().c_str());
-			logGlobal->trace("Loading music %s from (%s)\n", currentName.getOriginalName(), resourceName.value().c_str());
-			return;
-		}
-#endif
 		std::unique_ptr<CInputStream> stream = CResourceHandler::get()->load(currentName);
 
 		if(musicURI.getName() == "BLADEFWCAMPAIGN") // handle defect MP3 file - ffprobe says: Skipping 52 bytes of junk at 0.
