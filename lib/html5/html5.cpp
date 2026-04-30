@@ -27,6 +27,9 @@ namespace {
 }
 
 void html5::fsUpdate(const char *path) {
+    if (!path || strncmp(path, "/home/web_user/.config", 22) == 0) {
+        return;
+    }
     std::ifstream infile(path);
     if (!infile.is_open()) {
         assert(false);
@@ -38,12 +41,22 @@ void html5::fsUpdate(const char *path) {
     char *buffer = (char *) malloc(length);
     infile.read(buffer, length);
 
+    char *pathCopy = (char *)malloc(strlen(path) + 1);
+    strcpy(pathCopy, path);
+
 #ifdef EMSCRIPTEN
  	MAIN_THREAD_EM_ASM((
+        const path = UTF8ToString($0);
+        FS.syncfs(false, () => {
+            console.log("fsUpdated", path);
+        });
 		if (Module.fsUpdate) {
 			Module.fsUpdate($0, $1, $2);
-		}
-  	), path, buffer, length);
+		} else {
+            Module.free($0);
+            Module.free($1);
+        }
+  	), pathCopy, buffer, length);
 #endif
 }
 
