@@ -20,6 +20,8 @@
       overflow: hidden;
       height: 100%;
       background: #070b12;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     #canvas {
@@ -152,6 +154,10 @@
     }
   </script>
   <script type="text/javascript">
+    document.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+    });
+
     const v8Endpoint = "https://d5dn8hh4ivlobv6682ep.apigw.yandexcloud.net";
     const presignPut = v8Endpoint + "/presign-put";
     const v8key = localStorage.getItem("mp.v8key");
@@ -198,16 +204,16 @@
 
 
         await new Promise(resolve => {
-        	OPFS.syncFsOnProgress = (progress, type, file) => {
-         	   fsSyncProgress.update(progress, type, file);
-        	};
-        	fsSyncProgress.begin();
+          OPFS.syncFsOnProgress = (progress, type, file) => {
+            fsSyncProgress.update(progress, type, file);
+          };
+          fsSyncProgress.begin();
           FS.syncfs(true, (err) => {
-            	if (err) {
-             	   console.error('fs sync failed', err);
-            	}
-            	OPFS.syncFsOnProgress = null;
-            	fsSyncProgress.finish();
+            if (err) {
+              console.error('fs sync failed', err);
+            }
+            OPFS.syncFsOnProgress = null;
+            fsSyncProgress.finish();
             resolve();
           });
         });
@@ -251,7 +257,7 @@
               try {
                 const tokenResponse = await fetch(`https://cloud.dos.zone/token/get?id=${encodeURIComponent(v8key)}`);
                 if (tokenResponse.ok) {
-                  const { premium, email, token} = await tokenResponse.json();
+                  const { premium, email, token } = await tokenResponse.json();
                   if (premium === true && email && email.length > 0 && token && token.length > 0) {
                     module.cloudSaves.set(file, contents);
 
