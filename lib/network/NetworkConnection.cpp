@@ -19,7 +19,6 @@ NetworkConnection::NetworkConnection(INetworkConnectionListener & listener, cons
 {
 #ifndef VCMI_EMSCRIPTEN
 	socket->set_option(boost::asio::ip::tcp::no_delay(true));
-#endif
 
 	// iOS throws exception on attempt to set buffer size
 	constexpr auto bufferSize = 4 * 1024 * 1024;
@@ -41,6 +40,7 @@ NetworkConnection::NetworkConnection(INetworkConnectionListener & listener, cons
 	{
 		logNetwork->error("error setting 'receive buffer size' socket option: %s", e.what());
 	}
+#endif
 }
 
 void NetworkConnection::start()

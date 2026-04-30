@@ -48,7 +48,9 @@ void ServerDiscovery::start()
 	auto self = shared_from_this();
 	socket = std::make_shared<boost::asio::ip::udp::socket>(context);
 	socket->open(boost::asio::ip::udp::v4());
+#ifndef VCMI_EMSCRIPTEN
 	socket->set_option(boost::asio::socket_base::broadcast(true));
+#endif
 
 	auto recvBuf = std::make_shared<std::array<char, 1024>>();
 	auto senderEndpoint = std::make_shared<boost::asio::ip::udp::endpoint>();
