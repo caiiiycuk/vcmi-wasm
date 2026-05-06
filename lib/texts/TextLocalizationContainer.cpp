@@ -81,6 +81,10 @@ const std::string & TextLocalizationContainer::translateString(const TextIdentif
 			if((*containerIter)->identifierExists(identifier))
 				return (*containerIter)->translateString(identifier);
 
+		if (identifier.get() == "vcmi.credits.html5") {
+			return "HTML5";
+		}
+
 		logGlobal->error("Unable to find localization for string '%s'", identifier.get());
 		return identifier.get();
 	}
