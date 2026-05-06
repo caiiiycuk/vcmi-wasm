@@ -59,11 +59,8 @@
 #include "../../lib/GameConstants.h"
 #include "../../lib/CRandomGenerator.h"
 #include "../../lib/GameLibrary.h"
+#include "../../lib/html5/html5.h"
 #include "../../lib/json/JsonUtils.h"
-
-#ifdef VCMI_EMSCRIPTEN
-#include <emscripten.h>
-#endif
 
 #include <boost/lexical_cast.hpp>
 
@@ -211,9 +208,7 @@ static std::function<void()> genCommand(CMenuScreen * menu, std::vector<std::str
 			{
 				return []() {
 #ifdef VCMI_EMSCRIPTEN
-				    EM_ASM((
-                        Module.mainMenuQuit();
-                    ));
+				    html5::quitGame();
 #else
 				    CInfoWindow::showYesNoDialog(LIBRARY->generaltexth->allTexts[69], std::vector<std::shared_ptr<CComponent>>(), [](){GAME->onShutdownRequested(false);}, 0, PlayerColor(1));
 #endif

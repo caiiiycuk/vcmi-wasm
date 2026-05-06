@@ -38,6 +38,7 @@
 #include "../../lib/mapObjects/CGHeroInstance.h"
 #include "../../lib/mapObjects/CGTownInstance.h"
 #include "../../lib/mapObjects/MiscObjects.h"
+#include "../../lib/html5/html5.h"
 #include "../../lib/mapping/CMap.h"
 #include "../../lib/pathfinder/CGPathNode.h"
 #include "../../lib/mapObjectConstructors/CObjectClassesHandler.h"
@@ -362,7 +363,14 @@ void AdventureMapShortcuts::quitGame()
 {
 	GAME->interface()->showYesNoDialog(
 		LIBRARY->generaltexth->allTexts[578],
-		[](){ GAME->onShutdownRequested(false);},
+		[]()
+		{
+#ifdef VCMI_EMSCRIPTEN
+			html5::quitGame();
+#else
+			GAME->onShutdownRequested(false);
+#endif
+		},
 		nullptr
 		);
 }

@@ -20,10 +20,10 @@ namespace html5 {
     void savePng(SDL_Surface *surf, const char* filename);
     bool isMobile();
     bool isMainThread();
+    void quitGame();
 #ifdef EMSCRIPTEN
     Point getPreferredWindowResolution();
 #endif
 }
 
 VCMI_LIB_NAMESPACE_END
-

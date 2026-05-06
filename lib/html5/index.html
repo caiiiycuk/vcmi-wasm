@@ -166,7 +166,7 @@
       websocket: {
         url: "wss://cloud.dos.zone:8443/vcmi-wss"
       },
-      mainMenuQuit: () => {
+      quitGame: () => {
         const url = new URL(location.href);
         url.pathname = url.pathname.substring(0, url.pathname.lastIndexOf('/')) + "/launcher.html";
         url.search = "?gameUrl=" + encodeURIComponent(location.href);

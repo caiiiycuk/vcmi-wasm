@@ -178,6 +178,14 @@ bool html5::isMobile() {
 #endif
 }
 
+void html5::quitGame() {
+#ifdef EMSCRIPTEN
+    MAIN_THREAD_EM_ASM((
+        Module.quitGame();
+    ));
+#endif
+}
+
 #ifdef EMSCRIPTEN
 Point html5::getPreferredWindowResolution() {
     auto width = EM_ASM_INT((

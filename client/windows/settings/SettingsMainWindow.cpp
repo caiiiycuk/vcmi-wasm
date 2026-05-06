@@ -19,6 +19,7 @@
 #include "CMT.h"
 #include "../../../lib/texts/CGeneralTextHandler.h"
 #include "../../../lib/GameLibrary.h"
+#include "../../../lib/html5/html5.h"
 #include "CPlayerInterface.h"
 #include "CServerHandler.h"
 #include "../../../lib/filesystem/ResourcePath.h"
@@ -125,7 +126,11 @@ void SettingsMainWindow::quitGameButtonCallback()
 		[this]()
 		{
 			close();
+#ifdef VCMI_EMSCRIPTEN
+			html5::quitGame();
+#else
 			ENGINE->user().onShutdownRequested(false);
+#endif
 		},
 		nullptr
 	);
