@@ -67,8 +67,8 @@ int vcmi_png_palette_n;
 
 std::unordered_map<std::string, SDL_Surface *> generatedSurfaces;
 
-SDL_Surface *html5::loadPng(unsigned char *bytes, int length, const char *filename) {
-    if (generatedSurfaces.find(filename) != generatedSurfaces.end()) {
+SDL_Surface *html5::loadPng(unsigned char *bytes, int length, const std::string& filename) {
+    if (generatedSurfaces.contains(filename)) {
         return copySurface(generatedSurfaces[filename]);
     }
     int width, height, n;
@@ -130,11 +130,11 @@ SDL_Surface *html5::loadPng(unsigned char *bytes, int length, const char *filena
     }
 }
 
-void html5::savePng(SDL_Surface *surf, const char *filename) {
-    if (generatedSurfaces.find(filename) != generatedSurfaces.end()) {
+void html5::savePng(SDL_Surface *surf, const std::string &filename) {
+    if (generatedSurfaces.contains(filename)) {
         delete generatedSurfaces[filename];
     } else {
-        FILE *f = fopen(filename, "wb");
+        FILE *f = fopen(filename.c_str(), "wb");
         if (f) {
             unsigned char pngMagic[] = {
                 // png magic

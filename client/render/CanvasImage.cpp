@@ -54,7 +54,7 @@ void CanvasImage::scaleTo(const Point & size, EScalingAlgorithm algorithm)
 void CanvasImage::exportBitmap(const boost::filesystem::path & path) const
 {
 #ifdef VCMI_HTML5_BUILD
-	html5::savePng(surface, path.string().c_str());
+	html5::savePng(surface, path.string());
 #else
 	IMG_SavePNG(surface, path.string().c_str());
 #endif

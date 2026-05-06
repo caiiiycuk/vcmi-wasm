@@ -16,8 +16,8 @@ VCMI_LIB_NAMESPACE_BEGIN
 namespace html5 {
     void fsUpdate(const char* path);
     bool isPngImage(unsigned char* data, int length);
-    SDL_Surface* loadPng(unsigned char* data, int length, const char* filename);
-    void savePng(SDL_Surface *surf, const char* filename);
+    SDL_Surface* loadPng(unsigned char* data, int length, const std::string& filename);
+    void savePng(SDL_Surface *surf, const std::string& filename);
     bool isMobile();
     bool isMainThread();
     void quitGame();
