@@ -129,6 +129,60 @@ static voidpf ZCALLBACK MinizipOpenFunc(voidpf opaque, const void* filename, int
 		return nullptr;
 }
 
+static uLong ZCALLBACK MinizipReadFunc(voidpf opaque, voidpf stream, void * buf, uLong size)
+{
+	return static_cast<uLong>(std::fread(buf, 1, static_cast<size_t>(size), static_cast<std::FILE *>(stream)));
+}
+
+static uLong ZCALLBACK MinizipWriteFunc(voidpf opaque, voidpf stream, const void * buf, uLong size)
+{
+	return static_cast<uLong>(std::fwrite(buf, 1, static_cast<size_t>(size), static_cast<std::FILE *>(stream)));
+}
+
+static ZPOS64_T ZCALLBACK MinizipTell64Func(voidpf opaque, voidpf stream)
+{
+#ifdef VCMI_WINDOWS
+	return static_cast<ZPOS64_T>(_ftelli64(static_cast<std::FILE *>(stream)));
+#else
+	return static_cast<ZPOS64_T>(::ftello(static_cast<std::FILE *>(stream)));
+#endif
+}
+
+static long ZCALLBACK MinizipSeek64Func(voidpf opaque, voidpf stream, ZPOS64_T offset, int origin)
+{
+	int fseekOrigin = 0;
+	switch(origin)
+	{
+		case ZLIB_FILEFUNC_SEEK_CUR:
+			fseekOrigin = SEEK_CUR;
+			break;
+		case ZLIB_FILEFUNC_SEEK_END:
+			fseekOrigin = SEEK_END;
+			break;
+		case ZLIB_FILEFUNC_SEEK_SET:
+			fseekOrigin = SEEK_SET;
+			break;
+		default:
+			return -1;
+	}
+
+#ifdef VCMI_WINDOWS
+	return _fseeki64(static_cast<std::FILE *>(stream), static_cast<__int64>(offset), fseekOrigin);
+#else
+	return ::fseeko(static_cast<std::FILE *>(stream), static_cast<off_t>(offset), fseekOrigin);
+#endif
+}
+
+static int ZCALLBACK MinizipCloseFunc(voidpf opaque, voidpf stream)
+{
+	return std::fclose(static_cast<std::FILE *>(stream));
+}
+
+static int ZCALLBACK MinizipErrorFunc(voidpf opaque, voidpf stream)
+{
+	return std::ferror(static_cast<std::FILE *>(stream));
+}
+
 zlib_filefunc64_def CDefaultIOApi::getApiStructure()
 {
 	static zlib_filefunc64_def MinizipFilefunc;
@@ -137,11 +191,27 @@ zlib_filefunc64_def CDefaultIOApi::getApiStructure()
 	{
 		fill_fopen64_filefunc(&MinizipFilefunc);
 		MinizipFilefunc.zopen64_file = &MinizipOpenFunc;
+		MinizipFilefunc.zread_file = &MinizipReadFunc;
+		MinizipFilefunc.zwrite_file = &MinizipWriteFunc;
+		MinizipFilefunc.ztell64_file = &MinizipTell64Func;
+		MinizipFilefunc.zseek64_file = &MinizipSeek64Func;
+		MinizipFilefunc.zclose_file = &MinizipCloseFunc;
+		MinizipFilefunc.zerror_file = &MinizipErrorFunc;
 	});
 	return MinizipFilefunc;
 }
 
 #if MINIZIP_NEEDS_32BIT_FUNCS
+static long ZCALLBACK MinizipTellFunc(voidpf opaque, voidpf stream)
+{
+	return static_cast<long>(MinizipTell64Func(opaque, stream));
+}
+
+static long ZCALLBACK MinizipSeekFunc(voidpf opaque, voidpf stream, uLong offset, int origin)
+{
+	return MinizipSeek64Func(opaque, stream, offset, origin);
+}
+
 zlib_filefunc_def CDefaultIOApi::getApiStructure32()
 {
 	static zlib_filefunc_def MinizipFilefunc;
@@ -150,6 +220,12 @@ zlib_filefunc_def CDefaultIOApi::getApiStructure32()
 	{
 		fill_fopen_filefunc(&MinizipFilefunc);
 		MinizipFilefunc.zopen_file = reinterpret_cast<void*(*)(void*, const char*, int)>(&MinizipOpenFunc);
+		MinizipFilefunc.zread_file = &MinizipReadFunc;
+		MinizipFilefunc.zwrite_file = &MinizipWriteFunc;
+		MinizipFilefunc.ztell_file = &MinizipTellFunc;
+		MinizipFilefunc.zseek_file = &MinizipSeekFunc;
+		MinizipFilefunc.zclose_file = &MinizipCloseFunc;
+		MinizipFilefunc.zerror_file = &MinizipErrorFunc;
 	});
 	return MinizipFilefunc;
 }
