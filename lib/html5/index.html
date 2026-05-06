@@ -153,6 +153,13 @@
       window.VCMI_DATA_URL = "https://br.cdn.dos.zone/vcmi/vcmiclient-v1/vcmiclient.data";
     }
   </script>
+  <script type="module">
+    import { opfsList, opfsWrite, opfsFlush } from './opfs-worker.js';
+
+    window.opfsList = opfsList;
+    window.opfsWrite = opfsWrite;
+    window.opfsFlush = opfsFlush;
+  </script>
   <script type="text/javascript">
     document.addEventListener("contextmenu", (event) => {
       event.preventDefault();
@@ -398,13 +405,6 @@
     })();
 
     window.Module = module;
-  </script>
-  <script type="module">
-    import { opfsList, opfsWrite, opfsFlush } from './opfs-worker.js';
-
-    window.opfsList = opfsList;
-    window.opfsWrite = opfsWrite;
-    window.opfsFlush = opfsFlush;
   </script>
   <script type="text/javascript" src="dialogs.js"></script>
   <script type="text/javascript" src="mini-lz4.js"></script>
